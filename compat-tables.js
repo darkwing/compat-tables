@@ -1,7 +1,6 @@
-function loadTable(payload) {
+function loadTable(payload, locale, isDebug) {
 
-    // Environment
-    var locale = navigator.language;
+    log('---------------------' + payload.features.name.en + '---------------------');
 
     // Payload Shortcuts
     var tabs = payload.meta.compat_table.tabs;
@@ -56,13 +55,12 @@ function loadTable(payload) {
     // BODY
     // ===============================
     output += '<tbody>';
-    payload.linked.features.forEach(function(feature) {
-        console.log(feature);
-
+    payload.linked.features.forEach(function(feature, i) {
         output += '<tr>';
         output += '<th scope="row">' + getLocaleOrDefaultFromObject(feature.name) + '</th>';
-
         output += '</tr>';
+
+        log(i, 'feature obj is: ', feature);   
     });
         
         /* SOME TYPEOF LOOP HERE */
@@ -73,10 +71,7 @@ function loadTable(payload) {
     // Table close
     output += '</table>';
 
-    // Output the table, for giggles
-    console.log('--------------------------------------------------------');
-    console.log('--------------------------------------------------------');
-    console.log('--------------------------------------------------------');
+    log('---------------------/' + payload.features.name.en + '---------------------');
 
     return output;
 
@@ -106,5 +101,11 @@ function loadTable(payload) {
         return match;
     }
 
+    function log(data) {
+        if(isDebug) {
+            console.log.apply(console, arguments);
+        }
+        return data;
+    }
 
 };

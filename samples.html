@@ -2,24 +2,23 @@
 <html lang="en" dir="ltr">
 <head>
 <link href="./styles.css" type="text/css" rel="stylesheet" />
-<script type="text/javascript" src="samples.js"></script>
+<script type="text/javascript" src="sample-display.js"></script>
+<script type="text/javascript" src="sample-transform-origin.js"></script>
 <script type="text/javascript" src="compat-tables.js"></script>
 </head>
 <body>
 
 <script>
 [
-	{
-		heading: 'Display',
-		data: displayPayload
-	},
-	{
-		heading: 'transform-origin',
-		data: transformOriginPayload
-	}
+
+	{ heading: 'Display', data: displayPayload },
+
+	{ heading: 'transform-origin', data: transformOriginPayload }
+
 ].forEach(function(item) {
-	document.write('<h2>' + item.heading + '</h2>');
-	document.write(loadTable(item.data));
+
+	document.write('<h2>' + item.heading + '</h2>' + loadTable(item.data, navigator.language, true));
+	
 })
 </script>
 

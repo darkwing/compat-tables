@@ -1,4 +1,4 @@
-function loadTable(payload, hostDiv) {
+function loadTable(payload) {
 
     // Environment
     var locale = navigator.language;
@@ -77,7 +77,8 @@ function loadTable(payload, hostDiv) {
     console.log('--------------------------------------------------------');
     console.log('--------------------------------------------------------');
     console.log('--------------------------------------------------------');
-    document.getElementById(hostDiv).innerHTML = output;
+
+    return output;
 
 
 

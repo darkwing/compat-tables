@@ -1,3 +1,11 @@
+/*
+
+    From Whitlock, to get cell data:
+
+    meta.compat_table.supports[feature.id][browser.id] = [support1.id, support2.id]
+
+*/
+
 function loadTable(payload, locale, isDebug) {
 
     log('---------------------' + payload.features.name.en + '---------------------');
@@ -34,9 +42,6 @@ function loadTable(payload, locale, isDebug) {
     tabs.forEach(function(tab) {
         tab.browsers.forEach(function(browserId) {
             var matchedBrowserObj = findObjectByIdInArray(browserId, payload.linked.browsers);
-
-            console.log(matchedBrowserObj.slug + ':  ', matchedBrowserObj);
-
             var browserName = getLocaleOrDefaultFromObject(matchedBrowserObj.name);
             var slugForCss = matchedBrowserObj.slug; // Kind of a big assumption
 
@@ -45,6 +50,9 @@ function loadTable(payload, locale, isDebug) {
             output += '<span>' + browserName + '</span>'; // PROBLEM:  No way of knowing "for Desktop" (localization issue)
             output += '<i aria-hidden="true" class="ic-' + slugForCss + '"></i>';
             output += '</abbr>';
+
+            if(isDebug) output += ' <code class="debug-detail">(' +  browserId +')</code>';
+
             output += '</th>';
         });
     });
@@ -55,12 +63,32 @@ function loadTable(payload, locale, isDebug) {
     // BODY
     // ===============================
     output += '<tbody>';
-    payload.linked.features.forEach(function(feature, i) {
+    payload.linked.features.forEach(function(feature) {
         output += '<tr>';
-        output += '<th scope="row">' + getLocaleOrDefaultFromObject(feature.name) + '</th>';
-        output += '</tr>';
+        output += '<th scope="row">' + getLocaleOrDefaultFromObject(feature.name) + (isDebug ? '<br><code class="debug-detail">(' + feature.id + ')</code>' : '') + '</th>';
 
-        log(i, 'feature obj is: ', feature);   
+        tabs.forEach(function(tab) {
+            tab.browsers.forEach(function(browserId) {
+                var browserFeatureResult = payload.meta.compat_table.supports[feature.id][browserId];
+                log(feature.id, '|', browserId, '|', browserFeatureResult);
+
+                output += '<td>';// = [support1.id, support2.id] + '</td>';
+                if(browserFeatureResult) {
+                    output += JSON.stringify(browserFeatureResult);
+                }
+                else {
+                    output += '(none)';
+                }
+                
+                if(isDebug) {
+                    output += '<br><br><br><br><br><code class="debug-detail-alt" title="feature id">' + feature.id + '</code><br><code class="debug-detail-alt2" title="browser id">' + browserId + '</code><br><code class="debug-detail" title="result">' + browserFeatureResult + '</code>';
+                }
+
+                output += '</td>';
+            });
+        });
+
+        output += '</tr>';
     });
         
         /* SOME TYPEOF LOOP HERE */

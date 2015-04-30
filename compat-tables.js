@@ -77,7 +77,7 @@ function loadTable(payload, locale, isDebug) {
                 if(browserFeatureResult) {
 
                     browserFeatureResult.forEach(function(id) {
-                        log(payload.linked.supports[id]);
+                        log(findObjectByIdInArray(id, payload.linked.supports));
                     });
 
                     output += JSON.stringify(browserFeatureResult);

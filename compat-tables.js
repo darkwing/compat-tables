@@ -70,15 +70,23 @@ function loadTable(payload, locale, isDebug) {
         tabs.forEach(function(tab) {
             tab.browsers.forEach(function(browserId) {
                 var browserFeatureResult = payload.meta.compat_table.supports[feature.id][browserId];
+
                 log(feature.id, '|', browserId, '|', browserFeatureResult);
 
-                output += '<td>';// = [support1.id, support2.id] + '</td>';
+                output += '<td ';
                 if(browserFeatureResult) {
+
+                    browserFeatureResult.forEach(function(id) {
+                        log(payload.linked.supports[id]);
+                    });
+
                     output += JSON.stringify(browserFeatureResult);
                 }
                 else {
                     output += '(none)';
                 }
+
+                output += '>'; // Closing the <td>
                 
                 if(isDebug) {
                     output += '<br><br><br><br><br><code class="debug-detail-alt" title="feature id">' + feature.id + '</code><br><code class="debug-detail-alt2" title="browser id">' + browserId + '</code><br><code class="debug-detail" title="result">' + browserFeatureResult + '</code>';

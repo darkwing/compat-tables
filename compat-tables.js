@@ -70,29 +70,46 @@ function loadTable(payload, locale, isDebug) {
         tabs.forEach(function(tab) {
             tab.browsers.forEach(function(browserId) {
                 var browserFeatureResult = payload.meta.compat_table.supports[feature.id][browserId];
+                var currentBrowserObj;
+
+                var cell = {
+                    className: '',
+                    content: ''
+                };
 
                 log(feature.id, '|', browserId, '|', browserFeatureResult);
 
-                output += '<td ';
                 if(browserFeatureResult) {
 
-                    browserFeatureResult.forEach(function(id) {
-                        log(findObjectByIdInArray(id, payload.linked.supports));
-                    });
+                    // Assume the last item is the "current"
+                    // This will likely need to change in the future
+                    currentBrowserObj = findObjectByIdInArray(browserFeatureResult.pop(), payload.linked.supports);
 
-                    output += JSON.stringify(browserFeatureResult);
+                    // Determine support via classname
+                    // PROBLEM:  Need to add  bc-browser-{browser}-{desktop|mobile} (ex: "bc-browser-firefox-desktop")
+                    cell.className = 'bc-supports-' + currentBrowserObj.support;
+
+                    // Build up the content 
+                    // This is going to need a ton of logic 
+                    cell.content += '(' + currentBrowserObj.support + ')'; // PROBLEM:  This requires localization for "Yes" and "No"
+
+                    // Determine support
+                    log('current', currentBrowserObj);
+
+                    // Just debug
+                    //browserFeatureResult.forEach(function(id) { log(findObjectByIdInArray(id, payload.linked.supports)); });
                 }
                 else {
-                    output += '(none)';
+                    cell.className = 'bc-supports-unknown';
+                    cell.content += '(none)';
                 }
 
-                output += '>'; // Closing the <td>
-                
                 if(isDebug) {
-                    output += '<br><br><br><br><br><code class="debug-detail-alt" title="feature id">' + feature.id + '</code><br><code class="debug-detail-alt2" title="browser id">' + browserId + '</code><br><code class="debug-detail" title="result">' + browserFeatureResult + '</code>';
+                    cell.content += '<br><br><br><br><br><code class="debug-detail-alt" title="feature id">' + feature.id + '</code> <code class="debug-detail-alt2" title="browser id">' + browserId + '</code> <code class="debug-detail" title="result">' + browserFeatureResult + '</code>';
                 }
 
-                output += '</td>';
+                output += '<td class="' + cell.className + '"> ' + cell.content + '</td>';
+
             });
         });
 
@@ -138,7 +155,7 @@ function loadTable(payload, locale, isDebug) {
     }
 
     function log(data) {
-        if(isDebug) {
+        if(isDebug && console && console.log) {
             console.log.apply(console, arguments);
         }
         return data;

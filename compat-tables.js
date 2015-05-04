@@ -77,8 +77,6 @@ function loadTable(payload, locale, isDebug) {
     output += '<tbody>';
     payload.linked.features.forEach(function(feature) {
 
-        console.warn(feature);
-
         output += '<tr>';
         output += '<th scope="row">';
         output += getLocaleOrDefaultFromObject(feature.name);
@@ -118,7 +116,9 @@ function loadTable(payload, locale, isDebug) {
         tabs.forEach(function(tab) {
             tab.browsers.forEach(function(browserId) {
                 var browserFeatureHistory = payload.meta.compat_table.supports[feature.id][browserId];
+                var browserMeta = findObjectByIdInArray(browserId, payload.linked.browsers);
                 var currentBrowserObj;
+                var browserVersionObj;
 
                 var cell = {
                     className: '',
@@ -135,11 +135,20 @@ function loadTable(payload, locale, isDebug) {
 
                     // Determine support via classname
                     // PROBLEM:  Need to add  bc-browser-{browser}-{desktop|mobile} (ex: "bc-browser-firefox-desktop")
-                    cell.className = 'bc-supports-' + currentBrowserObj.support;
+                    cell.className += ' bc-supports-' + currentBrowserObj.support + ' bc-browser-' + browserMeta.slug;
 
                     // Build up the content 
                     // This is going to need a ton of logic 
-                    cell.content += '(' + currentBrowserObj.support + ')'; // PROBLEM:  This requires localization for "Yes" and "No"
+                    browserVersionObj = findObjectByIdInArray(currentBrowserObj.links.version ,payload.linked.versions);
+
+                    if(browserVersionObj && browserVersionObj.version) {
+                        cell.content += browserVersionObj.version;
+                    }
+                    else {
+                        cell.content += currentBrowserObj.support; // PROBLEM:  This requires localization for "Yes" and "No"
+                    }
+
+                    cell.content += '<abbr title="{{ PROBLEM }}" class="bc-level bc-level-' + currentBrowserObj.support + ' only-icon"><span>{{ PROBLEM }}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>';
 
                     // Account for any required icons
                     if( currentBrowserObj.prefix_mandatory || 
@@ -211,7 +220,7 @@ function loadTable(payload, locale, isDebug) {
                     //browserFeatureHistory.forEach(function(id) { log(findObjectByIdInArray(id, payload.linked.supports)); });
                 }
                 else {
-                    cell.className = 'bc-supports-unknown';
+                    cell.className += ' bc-supports-unknown';
                     cell.content += '?';
                 }
 

@@ -217,6 +217,15 @@ function loadTable(payload, locale, isDebug) {
                         // Add dropdown toggle
                         cell.content += '<a href="{{ PROBLEM }}" title="{{ PROBLEM }}" class="bc-history-link only-icon"><span>{{ PROBLEM }}</span><i class="ic-history" aria-hidden="true"></i></a>';
 
+                        // Setup the section
+                        cell.content += '<section class="bc-history hidden" aria-hidden="true">';
+                        browserFeatureHistory.forEach(function(historyItemId) {
+                            log('historyItemId:  ', historyItemId, findObjectByIdInArray(historyItemId, payload.linked.supports));
+
+
+
+                        });
+                        cell.content += '</section>';
                     }
 
 

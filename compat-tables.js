@@ -211,6 +211,13 @@ function loadTable(payload, locale, isDebug) {
 
 
                     // History stuff goes here
+                    // The "latest" browser was pop()'d off, so all items in this array are histroy/older
+                    if(browserFeatureHistory.length) {
+
+                        // Add dropdown toggle
+                        cell.content += '<a href="{{ PROBLEM }}" title="{{ PROBLEM }}" class="bc-history-link only-icon"><span>{{ PROBLEM }}</span><i class="ic-history" aria-hidden="true"></i></a>';
+
+                    }
 
 
                     // Determine support

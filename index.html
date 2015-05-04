@@ -16,17 +16,19 @@
 <script type="text/javascript">
 [
 
-	{ heading: 'Display', data: 'displayPayload', file: 'sample-display' },
+	{ heading: 'Display', data: 'displayPayload', file: 'display' },
 
-	{ heading: 'transform-origin', data: 'transformOriginPayload', file: 'sample-transform-origin' },
+	{ heading: 'transform-origin', data: 'transformOriginPayload', file: 'transform-origin' },
 
-	{ heading: 'Web API childNode', data: 'childNodePayload', file: 'sample-childNode' }
+	{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' }
 
 ].forEach(function(item) {
 
+	var isDebug = false;
+
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
-	script.src = './' + item.file + '.js';
+	script.src = './sample-data/' + item.file + '.js';
 	script.onload = (function(i) {
 		return function() {
 
@@ -35,7 +37,7 @@
 			document.body.appendChild(heading);
 
 			var container = document.createElement('div');
-			container.innerHTML = loadTable(window[i.data], navigator.language, true)
+			container.innerHTML = loadTable(window[i.data], navigator.language, isDebug);
 			document.body.appendChild(container);
 		};
 	})(item);

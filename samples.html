@@ -2,30 +2,44 @@
 <html lang="en" dir="ltr">
 <head>
 <link href="./styles.css" type="text/css" rel="stylesheet" />
-<script type="text/javascript" src="sample-display.js"></script>
-<script type="text/javascript" src="sample-transform-origin.js"></script>
-<script type="text/javascript" src="compat-tables.js"></script>
-
 <style>
 .debug-detail, .debug-detail-alt, .debug-detail-alt2 { border-radius: 4px; padding: 3px; font-size: 13px; }
 .debug-detail { background: #fffea1; color: red; }
 .debug-detail-alt { background: lightblue; }
 .debug-detail-alt2 { background: lightpink; }
 </style>
+<script type="text/javascript" src="compat-tables.js"></script>
 </head>
+
 <body>
 
-<script>
+<script type="text/javascript">
 [
 
-	//{ heading: 'Display', data: displayPayload },
+	{ heading: 'Display', data: 'displayPayload', file: 'sample-display' },
 
-	{ heading: 'transform-origin', data: transformOriginPayload }
+	{ heading: 'transform-origin', data: 'transformOriginPayload', file: 'sample-transform-origin' },
+
+	{ heading: 'Web API childNode', data: 'childNodePayload', file: 'sample-childNode' }
 
 ].forEach(function(item) {
 
-	document.write('<h2>' + item.heading + '</h2>' + loadTable(item.data, navigator.language, true));
-	
+	var script = document.createElement('script');
+	script.type = 'text/javascript';
+	script.src = './' + item.file + '.js';
+	script.onload = (function(i) {
+		return function() {
+
+			var heading = document.createElement('h2');
+			heading.textContent = i.heading;
+			document.body.appendChild(heading);
+
+			var container = document.createElement('div');
+			container.innerHTML = loadTable(window[i.data], navigator.language, true)
+			document.body.appendChild(container);
+		};
+	})(item);
+	document.body.appendChild(script);
 })
 </script>
 

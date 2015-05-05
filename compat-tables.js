@@ -3,13 +3,9 @@
     TO DO
     ===============================
 
-    1.  
-
-
-    From Whitlock, to get cell data:
-
-        -  meta.compat_table.supports[feature.id][browser.id] = [support1.id, support2.id]
-        -  The last item in the array is the most current, everything else is relevant "history"
+    1.  Security check:
+            -  Anything coming straight from DB needs to be encoded since this is a open source project
+               (anyone can cause a problem)
 
 */
 
@@ -40,10 +36,15 @@ function loadTable(payload, locale, isDebug) {
     output += '<td></td>';
     tabs.forEach(function(tab) {
         output += '<th colspan="' + tab.browsers.length +'" class="bc-medium-{HELP}">'; // PROBLEM:  No way to identify "bc-medium-{x}" (desktop|mobile) for class
-        output += '<abbr class="only-icon" title="{HELP}">'; // PROBLEM:  No way to identify "Desktop" or "Mobile" for the title
-        output += '<span>' + getLocaleOrDefaultFromObject(tab.name) + '</span>';
-        output += '<i aria-hidden="true" class="ic-{HELP}"></i>'; // PROBLEM:  No way to identify "ic-{x}" (desktop|mobile) for class
-        output += '</abbr>';
+
+        var tabName = getLocaleOrDefaultFromObject(tab.name);
+
+        output += substitute(iconTemplate, {
+            title: '{{ PROBLEM }}', // PROBLEM:  No way to identify "Desktop" or "Mobile" for the title
+            text: tabName,
+            icon: '{{ PROBLEM }}' // PROBLEM:  No way to identify "ic-{x}" (desktop|mobile) for class
+        });
+
         output += '</th>';
     });
     output += '</tr>';
@@ -121,7 +122,7 @@ function loadTable(payload, locale, isDebug) {
                 var browserVersionObj;
 
                 var cell = {
-                    className: '',
+                    classes: [],
                     content: ''
                 };
 
@@ -135,7 +136,7 @@ function loadTable(payload, locale, isDebug) {
 
                     // Determine support via classname
                     // PROBLEM:  Need to add  bc-browser-{browser}-{desktop|mobile} (ex: "bc-browser-firefox-desktop")
-                    cell.className += ' bc-supports-' + currentBrowserObj.support + ' bc-browser-' + browserMeta.slug;
+                    cell.classes.push('bc-supports-' + currentBrowserObj.support, 'bc-browser-' + browserMeta.slug);
 
                     // Build up the content 
                     // This is going to need a ton of logic 
@@ -145,7 +146,7 @@ function loadTable(payload, locale, isDebug) {
                         cell.content += browserVersionObj.version;
                     }
                     else {
-                        cell.content += currentBrowserObj.support; // PROBLEM:  This requires localization for "Yes" and "No"
+                        cell.content += '(' + currentBrowserObj.support + ')'; // PROBLEM:  This requires localization for "Yes" and "No"
                     }
 
                     cell.content += '<abbr title="{{ PROBLEM }}" class="bc-level bc-level-' + currentBrowserObj.support + ' only-icon"><span>{{ PROBLEM }}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>';
@@ -206,14 +207,12 @@ function loadTable(payload, locale, isDebug) {
                         }
 
                         cell.content += '</div>';
-
                     }
 
 
                     // History stuff goes here
                     // The "latest" browser was pop()'d off, so all items in this array are histroy/older
                     if(browserFeatureHistory.length) {
-
                         // Add dropdown toggle
                         cell.content += '<a href="{{ PROBLEM }}" title="{{ PROBLEM }}" class="bc-history-link only-icon"><span>{{ PROBLEM }}</span><i class="ic-history" aria-hidden="true"></i></a>';
 
@@ -222,21 +221,14 @@ function loadTable(payload, locale, isDebug) {
                         browserFeatureHistory.forEach(function(historyItemId) {
                             log('historyItemId:  ', historyItemId, findObjectByIdInArray(historyItemId, payload.linked.supports));
 
-
+                            console.warn('historyItemId:  ', historyItemId, findObjectByIdInArray(historyItemId, payload.linked.supports));
 
                         });
                         cell.content += '</section>';
                     }
-
-
-                    // Determine support
-                    log('current', currentBrowserObj);
-
-                    // Just debug
-                    //browserFeatureHistory.forEach(function(id) { log(findObjectByIdInArray(id, payload.linked.supports)); });
                 }
                 else {
-                    cell.className += ' bc-supports-unknown';
+                    cell.classes.push('bc-supports-unknown');
                     cell.content += '?';
                 }
 
@@ -244,7 +236,7 @@ function loadTable(payload, locale, isDebug) {
                     cell.content += '<br><br><br><br><br><code class="debug-detail-alt" title="feature id">' + feature.id + '</code> <code class="debug-detail-alt2" title="browser id">' + browserId + '</code> <code class="debug-detail" title="result">' + browserFeatureHistory + '</code>';
                 }
 
-                output += '<td class="' + cell.className + '"> ' + cell.content + '</td>';
+                output += '<td class="' + cell.classes.join(' ') + '"> ' + cell.content + '</td>';
 
             });
         });
@@ -277,7 +269,7 @@ function loadTable(payload, locale, isDebug) {
     }
 
     function getLocaleOrDefaultFromObject(nameObj) {
-        return typeof nameObj == "string" ? nameObj : (nameObj[locale] || nameObj[locale.split('-')[0]] || nameObj['en']);
+        return typeof nameObj === 'string' ? nameObj : (nameObj[locale] || nameObj[locale.split('-')[0]] || nameObj['en']);
     }
 
     function findObjectByIdInArray(id, array) {

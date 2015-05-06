@@ -24,6 +24,7 @@ function loadTable(payload, locale, isDebug) {
 
     // Templates
     var iconTemplate = '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon}" aria-hidden="true"></i></abbr>';
+    var supportTemplate = '<abbr title="{title}" class="bc-level bc-level-{icon} only-icon"><span>{text}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>';
 
     // TABLE
     // ===============================
@@ -38,7 +39,6 @@ function loadTable(payload, locale, isDebug) {
         output += '<th colspan="' + tab.browsers.length +'" class="bc-medium-{HELP}">'; // PROBLEM:  No way to identify "bc-medium-{x}" (desktop|mobile) for class
 
         var tabName = getLocaleOrDefaultFromObject(tab.name);
-
         output += substitute(iconTemplate, {
             title: '{{ PROBLEM }}', // PROBLEM:  No way to identify "Desktop" or "Mobile" for the title
             text: tabName,
@@ -59,9 +59,13 @@ function loadTable(payload, locale, isDebug) {
             var slugForCss = matchedBrowserObj.slug; // PROBLEM:  Kind of a big assumption
 
             output += '<th class="bc-browser-' + slugForCss + '-HELP">'; // PROBLEM:  No way to  identify "bc-browser-{browser}-{env}" for class
-            output += '<abbr class="only-icon" title="' + browserName +'">';
-            output += '<span>' + browserName + '</span>'; // PROBLEM:  No way of knowing "for Desktop" (localization issue)
-            output += '<i aria-hidden="true" class="ic-' + slugForCss + '"></i>';
+
+            output += substitute(iconTemplate, {
+                title: browserName,
+                text: browserName, // PROBLEM:  No way of knowing "for Desktop" (localization issue)
+                icon: slugForCss
+            });
+
             output += '</abbr>';
 
             if(isDebug) output += ' <code class="debug-detail">(' +  browserId +')</code>';
@@ -140,7 +144,7 @@ function loadTable(payload, locale, isDebug) {
 
                     // Build up the content 
                     // This is going to need a ton of logic 
-                    browserVersionObj = findObjectByIdInArray(currentBrowserObj.links.version ,payload.linked.versions);
+                    browserVersionObj = findObjectByIdInArray(currentBrowserObj.links.version, payload.linked.versions);
 
                     if(browserVersionObj && browserVersionObj.version) {
                         cell.content += browserVersionObj.version;
@@ -149,66 +153,14 @@ function loadTable(payload, locale, isDebug) {
                         cell.content += '(' + currentBrowserObj.support + ')'; // PROBLEM:  This requires localization for "Yes" and "No"
                     }
 
-                    cell.content += '<abbr title="{{ PROBLEM }}" class="bc-level bc-level-' + currentBrowserObj.support + ' only-icon"><span>{{ PROBLEM }}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>';
+                    cell.content += substitute(supportTemplate, {
+                        title: '{{ PROBLEM }}',
+                        support: currentBrowserObj.support,
+                        text: '{{ PROBLEM }}'
+                    });
 
-                    // Account for any required icons
-                    if( currentBrowserObj.prefix_mandatory || 
-                        currentBrowserObj.alternate_name_mandatory || 
-                        currentBrowserObj['protected'] || 
-                        currentBrowserObj.notes ||
-                        (currentBrowserObj.requires_config && currentBrowserObj.default_config && (currentBrowserObj.requires_config != currentBrowserObj.default_config))
-                    ) {
-
-                        cell.content += '<div class="bc-icons">';
-
-                        // Browser Prefix
-                        if(currentBrowserObj.prefix_mandatory) {
-                            cell.content += substitute(iconTemplate, {
-                                title: '{{ PROBLEM }}',
-                                text: '{{ PROBLEM }}',
-                                icon: 'prefix'
-                            });
-                        }
-
-                        // Alternate Name Mandatory
-                        if(currentBrowserObj.alternate_name_mandatory) {
-                            cell.content += substitute(iconTemplate, {
-                                title: '{{ PROBLEM }}',
-                                text: '{{ PROBLEM }}',
-                                icon: 'altname'
-                            });
-                        }
-
-                        // Requires/Default config
-                        if(currentBrowserObj.requires_config && currentBrowserObj.default_config && (currentBrowserObj.requires_config != currentBrowserObj.default_config)) {
-                            cell.content += substitute(iconTemplate, {
-                                title: '{{ PROBLEM }}',
-                                text: '{{ PROBLEM }}',
-                                icon: 'disabled'
-                            });
-                        }
-
-                        // Protected
-                        if(currentBrowserObj['protected']) {
-                            cell.content += substitute(iconTemplate, {
-                                title: '{{ PROBLEM }}',
-                                text: '{{ PROBLEM }}',
-                                icon: 'protected'
-                            });
-                        }
-
-                        // Notes
-                        if(currentBrowserObj.notes) {
-                            cell.content += substitute(iconTemplate, {
-                                title: '{{ PROBLEM }}',
-                                text: '{{ PROBLEM }}',
-                                icon: 'footnote'
-                            });
-                        }
-
-                        cell.content += '</div>';
-                    }
-
+                    // Add icons for this individual history object
+                    cell.content += outputIconsForHistoryObject(currentBrowserObj);
 
                     // History stuff goes here
                     // The "latest" browser was pop()'d off, so all items in this array are histroy/older
@@ -217,14 +169,23 @@ function loadTable(payload, locale, isDebug) {
                         cell.content += '<a href="{{ PROBLEM }}" title="{{ PROBLEM }}" class="bc-history-link only-icon"><span>{{ PROBLEM }}</span><i class="ic-history" aria-hidden="true"></i></a>';
 
                         // Setup the section
-                        cell.content += '<section class="bc-history hidden" aria-hidden="true">';
+                        cell.content += '<section class="bc-history hidden" aria-hidden="true"><dl>';
                         browserFeatureHistory.forEach(function(historyItemId) {
-                            log('historyItemId:  ', historyItemId, findObjectByIdInArray(historyItemId, payload.linked.supports));
+                            var historyItemObject = findObjectByIdInArray(historyItemId, payload.linked.supports);
+                            var historyItemVersionObject = findObjectByIdInArray(historyItemObject.links.version, payload.linked.versions)
 
-                            console.warn('historyItemId:  ', historyItemId, findObjectByIdInArray(historyItemId, payload.linked.supports));
+                            cell.content += '<dt class="bc-supports-' + historyItemObject.support +' bc-supports">';
+                            cell.content += substitute(supportTemplate, {
+                                title: '{{ PROBLEM }}',
+                                text: '{{ PROBLEM }}',
+                                icon: historyItemObject.support
+                            });
+                            cell.content += historyItemVersionObject.version;
+                            cell.content += outputIconsForHistoryObject(historyItemVersionObject);
+                            cell.content += '</dt>';
 
                         });
-                        cell.content += '</section>';
+                        cell.content += '</dl></section>';
                     }
                 }
                 else {
@@ -258,6 +219,76 @@ function loadTable(payload, locale, isDebug) {
 
 
 
+
+    // UTILITY FUNCTIONS
+    // ===============================
+
+    // Evaluate a browser history object, place icons as needed
+    function outputIconsForHistoryObject(historyObject) {
+        var output = '';
+        
+        // Account for any required icons
+        if( historyObject.prefix_mandatory || 
+            historyObject.alternate_name_mandatory || 
+            historyObject['protected'] || 
+            historyObject.notes ||
+            (historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config))
+        ) {
+
+            output += '<div class="bc-icons">';
+
+            // Browser Prefix
+            if(historyObject.prefix_mandatory) {
+                output += substitute(iconTemplate, {
+                    title: '{{ PROBLEM }}',
+                    text: '{{ PROBLEM }}',
+                    icon: 'prefix'
+                });
+            }
+
+            // Alternate Name Mandatory
+            if(historyObject.alternate_name_mandatory) {
+                output += substitute(iconTemplate, {
+                    title: '{{ PROBLEM }}',
+                    text: '{{ PROBLEM }}',
+                    icon: 'altname'
+                });
+            }
+
+            // Requires/Default config
+            if(historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config)) {
+                output += substitute(iconTemplate, {
+                    title: '{{ PROBLEM }}',
+                    text: '{{ PROBLEM }}',
+                    icon: 'disabled'
+                });
+            }
+
+            // Protected
+            if(historyObject['protected']) {
+                output += substitute(iconTemplate, {
+                    title: '{{ PROBLEM }}',
+                    text: '{{ PROBLEM }}',
+                    icon: 'protected'
+                });
+            }
+
+            // Notes
+            if(historyObject.notes) {
+                output += substitute(iconTemplate, {
+                    title: '{{ PROBLEM }}',
+                    text: '{{ PROBLEM }}',
+                    icon: 'footnote'
+                });
+            }
+
+            output += '</div>';
+        }
+
+        return output;
+    }
+
+    // Returns the total number of browsers, both desktop and mobile
     function getNumberOfBrowsers() {
         var numBrowsers = 0;
 
@@ -268,20 +299,23 @@ function loadTable(payload, locale, isDebug) {
         return numBrowsers;
     }
 
-    function getLocaleOrDefaultFromObject(nameObj) {
-        return typeof nameObj === 'string' ? nameObj : (nameObj[locale] || nameObj[locale.split('-')[0]] || nameObj['en']);
+    // Tries to find the locale string for a given name object based on the navigator locale
+    function getLocaleOrDefaultFromObject(nameObject) {
+        return typeof nameObject === 'string' ? nameObject : (nameObject[locale] || nameObject[locale.split('-')[0]] || nameObject['en']);
     }
 
+    // Given an array of objects, this finds the desired object based on provided ID
     function findObjectByIdInArray(id, array) {
         var match;
         array.forEach(function(obj) {
             if(match) return;
-
             if(obj.id === id) match = obj;
         });
         return match;
     }
 
+    // Substitutes { key: value } objects into a template string
+    // Example:  <abbr title="{title}" class="only-icon">    { title: 'Something' }
     function substitute(str, object) {
         return str.replace((/\\?\{([^{}]+)\}/g), function(match, name) {
             if (match.charAt(0) == '\\') return match.slice(1);
@@ -289,6 +323,7 @@ function loadTable(payload, locale, isDebug) {
         });
     }
 
+    // Wrapper for logging, only logs when isDebug = true
     function log(data) {
         if(isDebug && console && console.log) {
             console.log.apply(console, arguments);

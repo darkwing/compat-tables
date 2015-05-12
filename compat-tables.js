@@ -11,6 +11,64 @@
 
 function loadTable(payload, locale, isDebug) {
 
+    var langDictionary = {
+        en: {
+
+            // Browser Types
+            browserTypes: {
+                desktop: 'Desktop',
+                mobile: 'Mobile'
+            },
+
+            // Basic yes and no
+            supportsShort: {
+                yes: 'Yes',
+                no: 'No',
+                parital: 'Partial'
+            },
+
+            // Support levels
+            supportsLong: {
+                yes: 'Full support',
+                no: 'No support',
+                partial: 'Partial support'
+            },
+
+            // Features, used in the left-most column
+            features: {
+                experimental: 'Experimental',
+                experimentalLong: 'Experimental. Expect behavior to change in the future.',
+
+                nonstandard: 'Non-standard',
+                nonstandardLong: 'Non-standard. Expect poor cross-browser support.',
+
+                obsolete: 'Obsolete',
+                obsoleteLong: 'Obsolete. Not for use in new websites.'
+            },
+            
+            // Version requirements
+            requirements: {
+                prefix: 'Prefixed',
+                prefixLong: 'Requires the vendor prefix: {prefix}',
+
+                notes: 'Notes',
+                notesLong: 'See implementation notes',
+
+                alternate: 'Alternate Name',
+                alternateLong: 'Uses the non-standard name: {name}',
+
+                'protected': 'Protected',
+                protectedLong: 'Protected. Additonal steps are required to get permission or certification for use.',
+
+                disabled: 'Disabled',
+                disabledRequires: 'The user must change {default} to {requires} to enable this feature.',
+                disabledDefault: 'The user must change {default} to enable this feature.'
+            }
+
+        }
+    };
+
+
     log('---------------------' + payload.features.name.en + '---------------------');
 
     // Payload Shortcuts
@@ -87,26 +145,26 @@ function loadTable(payload, locale, isDebug) {
         output += getLocaleOrDefaultFromObject(feature.name);
 
         // Account for icons in this cell
-        if(feature.experimental || feature.standardized || feature.obsolete) {
+        if(feature.experimental || feature.standardized === false || feature.obsolete) {
             output += '<div class="bc-icons">';
             if(feature.experimental) {
                 output += substitute(iconTemplate, {
-                    title: '{{ PROBLEM }}',
-                    text: '{{ PROBLEM }}',
+                    title: getStringBasedOnLocale('features', 'experimentalLong'),
+                    text: getStringBasedOnLocale('features', 'experimental'),
                     icon: 'experimental'
                 });
             }
             if(feature.standardized === false) {
                 output += substitute(iconTemplate, {
-                    title: '{{ PROBLEM }}',
-                    text: '{{ PROBLEM }}',
+                    title: getStringBasedOnLocale('features', 'nonstandardLong'),
+                    text: getStringBasedOnLocale('features', 'nonstandard'),
                     icon: 'standardized'
                 });
             }
             if(feature.obsolete) {
                 output += substitute(iconTemplate, {
-                    title: '{{ PROBLEM }}',
-                    text: '{{ PROBLEM }}',
+                    title: getStringBasedOnLocale('features', 'obsoleteLong'),
+                    text: getStringBasedOnLocale('features', 'obsolete'),
                     icon: 'obsolete'
                 });
             }
@@ -149,13 +207,13 @@ function loadTable(payload, locale, isDebug) {
                         cell.content += browserVersionObj.version;
                     }
                     else {
-                        cell.content += '(' + currentBrowserObj.support + ')'; // PROBLEM:  This requires localization for "Yes" and "No"
+                        cell.content += getStringBasedOnLocale('supportsShort', currentBrowserObj.support); // PROBLEM:  This requires localization for "Yes" and "No"
                     }
 
                     cell.content += substitute(supportTemplate, {
-                        title: '{{ PROBLEM }}',
+                        title: getStringBasedOnLocale('supportsLong', currentBrowserObj.support),
                         icon: currentBrowserObj.support,
-                        text: '{{ PROBLEM }}'
+                        text: getStringBasedOnLocale('supportsLong', currentBrowserObj.support)
                     });
 
                     // Add icons for this individual history object
@@ -240,7 +298,7 @@ function loadTable(payload, locale, isDebug) {
     // Evaluate a browser history object, place icons as needed
     function outputIconsForHistoryObject(historyObject) {
         var output = '';
-        
+
         // Account for any required icons
         if( historyObject.prefix_mandatory || 
             historyObject.alternate_name_mandatory || 
@@ -254,8 +312,10 @@ function loadTable(payload, locale, isDebug) {
             // Browser Prefix
             if(historyObject.prefix_mandatory) {
                 output += substitute(iconTemplate, {
-                    title: '{{ PROBLEM }}',
-                    text: '{{ PROBLEM }}',
+                    title: getStringBasedOnLocale('requirements', 'prefixLong', {
+                        prefix: historyObject.prefix
+                    }),
+                    text: getStringBasedOnLocale('requirements', 'prefix'),
                     icon: 'prefix'
                 });
             }
@@ -263,8 +323,10 @@ function loadTable(payload, locale, isDebug) {
             // Alternate Name Mandatory
             if(historyObject.alternate_name_mandatory) {
                 output += substitute(iconTemplate, {
-                    title: '{{ PROBLEM }}',
-                    text: '{{ PROBLEM }}',
+                    title: getStringBasedOnLocale('requirements', 'alternateLong', {
+                        prefix: historyObject.alternate_name
+                    }),
+                    text: getStringBasedOnLocale('requirements', 'alternate'),
                     icon: 'altname'
                 });
             }
@@ -272,8 +334,11 @@ function loadTable(payload, locale, isDebug) {
             // Requires/Default config
             if(historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config)) {
                 output += substitute(iconTemplate, {
-                    title: '{{ PROBLEM }}',
-                    text: '{{ PROBLEM }}',
+                    title: getStringBasedOnLocale('requirements', (historyObject.requires_config && historyObject.default_config) ? 'disabledRequires' : 'disabledDefault', {
+                        'default': historyObject.default_config,
+                        'requires': historyObject.requires_config
+                    }),
+                    text: getStringBasedOnLocale('requirements', 'disabled'),
                     icon: 'disabled'
                 });
             }
@@ -281,8 +346,8 @@ function loadTable(payload, locale, isDebug) {
             // Protected
             if(historyObject['protected']) {
                 output += substitute(iconTemplate, {
-                    title: '{{ PROBLEM }}',
-                    text: '{{ PROBLEM }}',
+                    title: getStringBasedOnLocale('requirements', 'protectedLong'),
+                    text: getStringBasedOnLocale('requirements', 'protected'),
                     icon: 'protected'
                 });
             }
@@ -290,8 +355,8 @@ function loadTable(payload, locale, isDebug) {
             // Notes
             if(historyObject.notes) {
                 output += substitute(iconTemplate, {
-                    title: '{{ PROBLEM }}',
-                    text: '{{ PROBLEM }}',
+                    title: getStringBasedOnLocale('requirements', 'notesLong'),
+                    text: getStringBasedOnLocale('requirements', 'notes'),
                     icon: 'footnote'
                 });
             }
@@ -316,6 +381,13 @@ function loadTable(payload, locale, isDebug) {
     // Tries to find the locale string for a given name object based on the navigator locale
     function getLocaleOrDefaultFromObject(nameObject) {
         return typeof nameObject === 'string' ? nameObject : (nameObject[locale] || nameObject[locale.split('-')[0]] || nameObject['en']);
+    }
+
+    // Finds a string in the dictionary for the given language object
+    // TODO:  Accomodate for more locales
+    function getStringBasedOnLocale(langDictKey, stringKey, obj) {
+        var returnValue = substitute(langDictionary['en'][langDictKey][stringKey], obj || {}) || '[UNKNOWN]';
+        return returnValue;
     }
 
     // Given an array of objects, this finds the desired object based on provided ID

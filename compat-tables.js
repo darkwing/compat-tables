@@ -3,9 +3,9 @@
     TO DO
     ===============================
 
-    1.  Security check:
-            -  Anything coming straight from DB needs to be encoded since this is a open source project
-               (anyone can cause a problem)
+    1.  Create the legend
+
+    2.  
 
 */
 
@@ -13,7 +13,6 @@ function loadTable(payload, locale, isDebug) {
 
     var langDictionary = {
         en: {
-
             // Browser Types
             browserTypes: {
                 desktop: 'Desktop',
@@ -63,8 +62,12 @@ function loadTable(payload, locale, isDebug) {
                 disabled: 'Disabled',
                 disabledRequires: 'The user must change {default} to {requires} to enable this feature.',
                 disabledDefault: 'The user must change {default} to enable this feature.'
-            }
+            },
 
+            // Legend text
+            legend: {
+                heading: 'Legend'
+            }
         }
     };
 
@@ -244,7 +247,7 @@ function loadTable(payload, locale, isDebug) {
                             cell.content += outputIconsForHistoryObject(historyItemVersionObject);
                             cell.content += '</dt>';
 
-                            cell.content += '<dd>(maybe some information here?)</dd>';
+                            cell.content += '<dd>&nbsp;</dd>';
                         });
                         cell.content += '</dl></section>';
                     }
@@ -281,7 +284,7 @@ function loadTable(payload, locale, isDebug) {
     // LEGEND, IF NECESSARY
     // ===============================
     output += '<section class="bc-legend">';
-
+    output += '<h3 class="offscreen">' + getStringBasedOnLocale('legend', 'heading') + '</h3>';
     output += '</section>';
 
 

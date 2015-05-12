@@ -1,8 +1,21 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
+<link rel="stylesheet" media="all" href="https://developer.cdn.mozilla.net/media/css/mdn-min.css?build=d9f09ac" />
 <link href="./styles.css" type="text/css" rel="stylesheet" />
 <style>
+html, body {
+	background: #fff;
+}
+
+body {
+	padding: 20px;
+}
+
+abbr {
+	border: 0;
+}
+
 .debug-detail, .debug-detail-alt, .debug-detail-alt2 { border-radius: 4px; padding: 3px; font-size: 13px; }
 .debug-detail { background: #fffea1; color: red; }
 .debug-detail-alt { background: lightblue; }
@@ -36,7 +49,9 @@ body .bc-table .bc-history {
 
 	{ heading: 'transform-origin', data: 'transformOriginPayload', file: 'transform-origin' },
 
-	{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' }
+	{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' },
+
+	{ heading: 'HTMLHtmlElement', data: 'HTMLHtmlElementPayload', file: 'HTMLHtmlElement' }
 
 ].forEach(function(item) {
 

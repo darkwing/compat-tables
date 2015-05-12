@@ -58,7 +58,7 @@ function loadTable(payload, locale, isDebug) {
             
             var slugForCss = matchedBrowserObj.slug; // PROBLEM:  Kind of a big assumption
 
-            output += '<th class="bc-browser-' + slugForCss + '-HELP">'; // PROBLEM:  No way to  identify "bc-browser-{browser}-{env}" for class
+            output += '<th class="bc-browser-' + slugForCss + '">';
 
             output += substitute(iconTemplate, {
                 title: browserName,
@@ -139,8 +139,7 @@ function loadTable(payload, locale, isDebug) {
                     currentBrowserObj = findObjectByIdInArray(browserFeatureHistory.pop(), payload.linked.supports);
 
                     // Determine support via classname
-                    // PROBLEM:  Need to add  bc-browser-{browser}-{desktop|mobile} (ex: "bc-browser-firefox-desktop")
-                    cell.classes.push('bc-supports-' + currentBrowserObj.support, 'bc-browser-' + browserMeta.slug);
+                    cell.classes.push('bc-supports-' + currentBrowserObj.support);
 
                     // Build up the content 
                     // This is going to need a ton of logic 
@@ -155,7 +154,7 @@ function loadTable(payload, locale, isDebug) {
 
                     cell.content += substitute(supportTemplate, {
                         title: '{{ PROBLEM }}',
-                        support: currentBrowserObj.support,
+                        icon: currentBrowserObj.support,
                         text: '{{ PROBLEM }}'
                     });
 
@@ -170,6 +169,9 @@ function loadTable(payload, locale, isDebug) {
 
                         // Setup the section
                         cell.content += '<section class="bc-history hidden" aria-hidden="true"><dl>';
+
+                        // Reverse the array to show support newest -> oldest
+                        browserFeatureHistory.reverse();
                         browserFeatureHistory.forEach(function(historyItemId) {
                             var historyItemObject = findObjectByIdInArray(historyItemId, payload.linked.supports);
                             var historyItemVersionObject = findObjectByIdInArray(historyItemObject.links.version, payload.linked.versions)
@@ -184,6 +186,7 @@ function loadTable(payload, locale, isDebug) {
                             cell.content += outputIconsForHistoryObject(historyItemVersionObject);
                             cell.content += '</dt>';
 
+                            cell.content += '<dd>(maybe some information here?)</dd>';
                         });
                         cell.content += '</dl></section>';
                     }
@@ -196,6 +199,9 @@ function loadTable(payload, locale, isDebug) {
                 if(isDebug) {
                     cell.content += '<br><br><br><br><br><code class="debug-detail-alt" title="feature id">' + feature.id + '</code> <code class="debug-detail-alt2" title="browser id">' + browserId + '</code> <code class="debug-detail" title="result">' + browserFeatureHistory + '</code>';
                 }
+
+                // Provide the browser class regardless of support
+                cell.classes.push('bc-browser-' + browserMeta.slug);
 
                 output += '<td class="' + cell.classes.join(' ') + '"> ' + cell.content + '</td>';
 
@@ -212,6 +218,14 @@ function loadTable(payload, locale, isDebug) {
 
     // Table close
     output += '</table>';
+
+    
+    // LEGEND, IF NECESSARY
+    // ===============================
+    output += '<section class="bc-legend">';
+
+    output += '</section>';
+
 
     log('---------------------/' + payload.features.name.en + '---------------------');
 

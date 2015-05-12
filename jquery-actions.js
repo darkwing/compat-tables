@@ -163,12 +163,12 @@
 
                 // add close button
                 var $thisHistoryCloseButton = $historyCloseButton.clone();
-                $thisHistoryCloseButton.on('click', function(event){ hideHistory($thisCell); }); /* click should trigger on tap and key*/
+                $thisHistoryCloseButton.on('click', function(event){ event.preventDefault(); hideHistory($thisCell); }); /* click should trigger on tap and key*/
                 $thisHistoryCloseButton.appendTo($thisHistory);
 
 
                 // add event listeners
-                $thisCell.on('click touchstart keydown', function(event){ toggleHistory(event, $thisCell); });
+                $thisCell.on('click touchstart keydown', function(event){ event.preventDefault(); toggleHistory(event, $thisCell); });
             } // if(hasHistory > 0)
 
         }); // $cells.each()

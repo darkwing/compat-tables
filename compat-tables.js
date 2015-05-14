@@ -3,10 +3,9 @@
     TO DO
     ===============================
 
-    1.  Create the legend
-        -  Need to keep track of items so we know what to put down there.
+    1.  Display information within the legend
 
-    2.  
+    2.  Add browser version feature detail within history dropdowns
 
 */
 
@@ -171,29 +170,18 @@ function loadTable(payload, locale, isDebug) {
         // Account for icons in this cell
         if(feature.experimental || feature.standardized === false || feature.obsolete) {
             output += '<div class="bc-icons">';
+
             if(feature.experimental) {
-                output += substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('features', 'experimentalLong'),
-                    text: getStringBasedOnLocale('features', 'experimental'),
-                    icon: 'experimental'
-                });
-                legendConditions.experimental = true;
+                output += getExperimentalIcon();
+                setLegendCondition('experimental');
             }
             if(feature.standardized === false) {
-                output += substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('features', 'nonstandardLong'),
-                    text: getStringBasedOnLocale('features', 'nonstandard'),
-                    icon: 'non-standard'
-                });
-                legendConditions.nonstandard = true;
+                output += getNonStandardIcon();
+                setLegendCondition('nonstandard');
             }
             if(feature.obsolete) {
-                output += substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('features', 'obsoleteLong'),
-                    text: getStringBasedOnLocale('features', 'obsolete'),
-                    icon: 'obsolete'
-                });
-                legendConditions.obsolute = true;
+                output += getObsoleteIcon();
+                setLegendCondition('obsolute');
             }
             output += '</div>';
         }
@@ -236,7 +224,7 @@ function loadTable(payload, locale, isDebug) {
 
                     // Add "Yes", "No", "Partial" or {version}
                     cell.content += getBrowserSupportText(browserVersionObj, currentBrowserObj);
-                    legendConditions[currentBrowserObj.support] = true;
+                    setLegendCondition(currentBrowserObj.support);
 
                     cell.content += substitute(supportTemplate, {
                         title: getStringBasedOnLocale('supportsLong', currentBrowserObj.support),
@@ -278,7 +266,7 @@ function loadTable(payload, locale, isDebug) {
 
                             cell.content += '<dd>&nbsp;</dd>';
 
-                            legendConditions[historyItemObject.support] = true;
+                            setLegendCondition(historyItemObject.support);
                         });
                         cell.content += '</dl></section>';
                     }
@@ -313,10 +301,8 @@ function loadTable(payload, locale, isDebug) {
     // ===============================
     output += '<section class="bc-legend">';
     output += '<h3 class="offscreen">' + getStringBasedOnLocale('legend', 'heading') + '</h3>';
+
     output += '</section>';
-
-
-    log('---------------------/' + payload.features.name.en + '---------------------');
 
     return output;
 
@@ -347,65 +333,43 @@ function loadTable(payload, locale, isDebug) {
 
             // Browser Prefix
             if(historyObject.prefix_mandatory) {
-                output += substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('requirements', 'prefixLong', {
-                        prefix: historyObject.prefix
-                    }),
-                    text: getStringBasedOnLocale('requirements', 'prefix'),
-                    icon: 'prefix'
-                });
-                legendConditions.prefix = true;
+                output += getPrefixIcon(historyObject);
+                setLegendCondition('prefix');
             }
 
             // Alternate Name Mandatory
             if(historyObject.alternate_name_mandatory) {
-                output += substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('requirements', 'alternateLong', {
-                        prefix: historyObject.alternate_name
-                    }),
-                    text: getStringBasedOnLocale('requirements', 'alternate'),
-                    icon: 'altname'
-                });
-                legendConditions.alternate = true;
+                output += getAlternateIcon(historyObject);
+                setLegendCondition('alternate');
             }
 
             // Requires/Default config
             if(historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config)) {
-                output += substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('requirements', (historyObject.requires_config && historyObject.default_config) ? 'disabledRequires' : 'disabledDefault', {
-                        'default': historyObject.default_config,
-                        'requires': historyObject.requires_config
-                    }),
-                    text: getStringBasedOnLocale('requirements', 'disabled'),
-                    icon: 'disabled'
-                });
-                legendConditions.config = true;
+                output += getConfigIcon(historyObject);
+                setLegendCondition('config');
             }
 
             // Protected
             if(historyObject['protected']) {
-                output += substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('requirements', 'protectedLong'),
-                    text: getStringBasedOnLocale('requirements', 'protected'),
-                    icon: 'protected'
-                });
-                legendConditions['protected'] = true;
+                output += getProtectedIcon();
+                setLegendCondition('protected');
             }
 
             // Notes
             if(historyObject.notes) {
-                output += substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('requirements', 'notesLong'),
-                    text: getStringBasedOnLocale('requirements', 'notes'),
-                    icon: 'footnote'
-                });
-                legendConditions.notes = true;
+                output += getNotesIcon();
+                setLegendCondition('notes');
             }
 
             output += '</div>';
         }
 
         return output;
+    }
+
+    // Set a legend condition key
+    function setLegendCondition(key) {
+        legendConditions[key] = true;
     }
 
     // Returns either the browser version number or "Yes" / "No" / "Partial"  for support text blocks
@@ -467,4 +431,68 @@ function loadTable(payload, locale, isDebug) {
         return data;
     }
 
+    // ICON BUILDERS
+    // ===============================
+    function _getBasicIcon(langKey, longTextKey, shortTextKey, icon) {
+        return substitute(iconTemplate, {
+                    title: getStringBasedOnLocale(langKey, longTextKey),
+                    text: getStringBasedOnLocale(langKey, shortTextKey),
+                    icon: (icon || shortTextKey)
+                });
+    }
+
+    function getExperimentalIcon() {
+        return _getBasicIcon('features', 'experimentalLong', 'experimental');
+    }
+
+    function getNonStandardIcon() {
+        return _getBasicIcon('features', 'nonstandardLong', 'nonstandard', 'non-standard');
+    }
+
+    function getObsoleteIcon() {
+        return _getBasicIcon('features', 'obsoleteLong', 'obsolete');
+    }
+
+    function getProtectedIcon() {
+        return _getBasicIcon('requirements', 'protectedLong', 'protected');
+    }
+
+    function getNotesIcon() {
+        return _getBasicIcon('requirements', 'notesLong', 'notes', 'footnote');
+    }
+
+    function getConfigIcon(historyObject) {
+        return substitute(iconTemplate, {
+                    title: getStringBasedOnLocale('requirements', (historyObject.requires_config && historyObject.default_config) ? 'disabledRequires' : 'disabledDefault', {
+                        'default': historyObject.default_config,
+                        'requires': historyObject.requires_config
+                    }),
+                    text: getStringBasedOnLocale('requirements', 'disabled'),
+                    icon: 'disabled'
+                });
+    }
+
+    function getAlternateIcon(historyObject) {
+        return substitute(iconTemplate, {
+                    title: getStringBasedOnLocale('requirements', 'alternateLong', {
+                        prefix: historyObject.alternate_name
+                    }),
+                    text: getStringBasedOnLocale('requirements', 'alternate'),
+                    icon: 'altname'
+                });
+    }
+
+    function getPrefixIcon(historyObject) {
+        return substitute(iconTemplate, {
+                    title: getStringBasedOnLocale('requirements', 'prefixLong', {
+                        prefix: historyObject.prefix
+                    }),
+                    text: getStringBasedOnLocale('requirements', 'prefix'),
+                    icon: 'prefix'
+                });
+    }
+
 };
+
+
+

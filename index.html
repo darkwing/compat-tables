@@ -44,25 +44,19 @@ body .bc-table .bc-history {
 
 <script type="text/javascript">
 [
-
 	{ heading: 'Display', data: 'displayPayload', file: 'display' },
-
 	{ heading: 'transform-origin', data: 'transformOriginPayload', file: 'transform-origin' },
-
 	{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' },
-
 	{ heading: 'HTMLHtmlElement', data: 'HTMLHtmlElementPayload', file: 'HTMLHtmlElement' }
-
 ].forEach(function(item) {
 
 	var isDebug = false;
-
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
 	script.src = './sample-data/' + item.file + '.js';
 	script.onload = (function(i) {
-		return function() {
 
+		return function() {
 			var heading = document.createElement('h2');
 			heading.textContent = i.heading;
 			document.body.appendChild(heading);
@@ -71,14 +65,16 @@ body .bc-table .bc-history {
 			container.innerHTML = loadTable(window[i.data], navigator.language, isDebug);
 			document.body.appendChild(container);
 		};
+		
 	})(item);
+
 	document.body.appendChild(script);
-})
+});
 </script>
 	
 <!-- Stubbing in jQuery and Stephanie's work to ensure everything works as required -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" ></script>
-<script src="jquery-actions.js"></script>
+<script src="jquery-actions.js" defer></script>
 
 </body>
 </html>

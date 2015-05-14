@@ -4,6 +4,7 @@
     ===============================
 
     1.  Create the legend
+        -  Need to keep track of items so we know what to put down there.
 
     2.  
 
@@ -87,6 +88,26 @@ function loadTable(payload, locale, isDebug) {
     var iconTemplate = '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon}" aria-hidden="true"></i></abbr>';
     var supportTemplate = '<abbr title="{title}" class="bc-level bc-level-{icon} only-icon"><span>{text}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>';
 
+    // Conditions object so we know what to put into the legend
+    var legendConditions = {
+        // Support levels
+        yes: false,
+        partial: false,
+        no: false,
+        
+        // Individual browser support details
+        prefix: false,
+        alternate: false,
+        'protected': false,
+        notes: false,
+        config: false,
+
+        // Feature detail
+        experimental: false,
+        nonstandard: false,
+        obsolete: false
+    };
+
     // TABLE
     // ===============================
     output += '<table class="bc-table bc-table-' + numberOfBrowsers + '">';
@@ -156,13 +177,15 @@ function loadTable(payload, locale, isDebug) {
                     text: getStringBasedOnLocale('features', 'experimental'),
                     icon: 'experimental'
                 });
+                legendConditions.experimental = true;
             }
             if(feature.standardized === false) {
                 output += substitute(iconTemplate, {
                     title: getStringBasedOnLocale('features', 'nonstandardLong'),
                     text: getStringBasedOnLocale('features', 'nonstandard'),
-                    icon: 'standardized'
+                    icon: 'non-standard'
                 });
+                legendConditions.nonstandard = true;
             }
             if(feature.obsolete) {
                 output += substitute(iconTemplate, {
@@ -170,6 +193,7 @@ function loadTable(payload, locale, isDebug) {
                     text: getStringBasedOnLocale('features', 'obsolete'),
                     icon: 'obsolete'
                 });
+                legendConditions.obsolute = true;
             }
             output += '</div>';
         }
@@ -197,7 +221,11 @@ function loadTable(payload, locale, isDebug) {
 
                     // Assume the last item is the "current"
                     // This will likely need to change in the future
-                    currentBrowserObj = findObjectByIdInArray(browserFeatureHistory.pop(), payload.linked.supports);
+                    // Only remove this item from the browser array if it doesn't fit icon/special criteria
+                    currentBrowserObj = findObjectByIdInArray(browserFeatureHistory[browserFeatureHistory.length - 1], payload.linked.supports);
+                    if(!meetsIconCritera(currentBrowserObj)) {
+                        browserFeatureHistory.pop()
+                    }
 
                     // Determine support via classname
                     cell.classes.push('bc-supports-' + currentBrowserObj.support);
@@ -206,12 +234,9 @@ function loadTable(payload, locale, isDebug) {
                     // This is going to need a ton of logic 
                     browserVersionObj = findObjectByIdInArray(currentBrowserObj.links.version, payload.linked.versions);
 
-                    if(browserVersionObj && browserVersionObj.version) {
-                        cell.content += browserVersionObj.version;
-                    }
-                    else {
-                        cell.content += getStringBasedOnLocale('supportsShort', currentBrowserObj.support); // PROBLEM:  This requires localization for "Yes" and "No"
-                    }
+                    // Add "Yes", "No", "Partial" or {version}
+                    cell.content += getBrowserSupportText(browserVersionObj, currentBrowserObj);
+                    legendConditions[currentBrowserObj.support] = true;
 
                     cell.content += substitute(supportTemplate, {
                         title: getStringBasedOnLocale('supportsLong', currentBrowserObj.support),
@@ -225,8 +250,9 @@ function loadTable(payload, locale, isDebug) {
                     // History stuff goes here
                     // The "latest" browser was pop()'d off, so all items in this array are histroy/older
                     if(browserFeatureHistory.length) {
+
                         // Add dropdown toggle
-                        cell.content += '<a href="{{ PROBLEM }}" title="{{ PROBLEM }}" class="bc-history-link only-icon"><span>{{ PROBLEM }}</span><i class="ic-history" aria-hidden="true"></i></a>';
+                        cell.content += '<a href="' + (feature.mdn_uri || 'javascript:;') + '" title="{{ PROBLEM }}" class="bc-history-link only-icon"><span>{{ PROBLEM }}</span><i class="ic-history" aria-hidden="true"></i></a>';
 
                         // Setup the section
                         cell.content += '<section class="bc-history hidden" aria-hidden="true"><dl>';
@@ -243,11 +269,16 @@ function loadTable(payload, locale, isDebug) {
                                 text: '{{ PROBLEM }}',
                                 icon: historyItemObject.support
                             });
-                            cell.content += historyItemVersionObject.version;
+
+                            // Add text for the version/support box
+                            cell.content += getBrowserSupportText(historyItemVersionObject, historyItemObject);
+
                             cell.content += outputIconsForHistoryObject(historyItemVersionObject);
                             cell.content += '</dt>';
 
                             cell.content += '<dd>&nbsp;</dd>';
+
+                            legendConditions[historyItemObject.support] = true;
                         });
                         cell.content += '</dl></section>';
                     }
@@ -271,9 +302,6 @@ function loadTable(payload, locale, isDebug) {
 
         output += '</tr>';
     });
-        
-        /* SOME TYPEOF LOOP HERE */
-        payload.linked.supports; // Supports array; need to connect to browsers
 
     output += '</tbody>';
 
@@ -298,17 +326,22 @@ function loadTable(payload, locale, isDebug) {
     // UTILITY FUNCTIONS
     // ===============================
 
+    // Simple true/false logic determining if a browser history object meets "extra info" criteria
+    function meetsIconCritera(historyObject) {
+        return (historyObject.prefix_mandatory || 
+            historyObject.alternate_name_mandatory || 
+            historyObject['protected'] || 
+            historyObject.notes ||
+            (historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config))
+        );
+    }
+
     // Evaluate a browser history object, place icons as needed
     function outputIconsForHistoryObject(historyObject) {
         var output = '';
 
         // Account for any required icons
-        if( historyObject.prefix_mandatory || 
-            historyObject.alternate_name_mandatory || 
-            historyObject['protected'] || 
-            historyObject.notes ||
-            (historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config))
-        ) {
+        if(meetsIconCritera(historyObject)) {
 
             output += '<div class="bc-icons">';
 
@@ -321,6 +354,7 @@ function loadTable(payload, locale, isDebug) {
                     text: getStringBasedOnLocale('requirements', 'prefix'),
                     icon: 'prefix'
                 });
+                legendConditions.prefix = true;
             }
 
             // Alternate Name Mandatory
@@ -332,6 +366,7 @@ function loadTable(payload, locale, isDebug) {
                     text: getStringBasedOnLocale('requirements', 'alternate'),
                     icon: 'altname'
                 });
+                legendConditions.alternate = true;
             }
 
             // Requires/Default config
@@ -344,6 +379,7 @@ function loadTable(payload, locale, isDebug) {
                     text: getStringBasedOnLocale('requirements', 'disabled'),
                     icon: 'disabled'
                 });
+                legendConditions.config = true;
             }
 
             // Protected
@@ -353,6 +389,7 @@ function loadTable(payload, locale, isDebug) {
                     text: getStringBasedOnLocale('requirements', 'protected'),
                     icon: 'protected'
                 });
+                legendConditions['protected'] = true;
             }
 
             // Notes
@@ -362,12 +399,23 @@ function loadTable(payload, locale, isDebug) {
                     text: getStringBasedOnLocale('requirements', 'notes'),
                     icon: 'footnote'
                 });
+                legendConditions.notes = true;
             }
 
             output += '</div>';
         }
 
         return output;
+    }
+
+    // Returns either the browser version number or "Yes" / "No" / "Partial"  for support text blocks
+    function getBrowserSupportText(versionObj, browserObj) {
+        if(versionObj && versionObj.version) {
+            return versionObj.version;
+        }
+        else {
+            return getStringBasedOnLocale('supportsShort', browserObj.support); // PROBLEM:  This requires localization for "Yes" and "No"
+        }
     }
 
     // Returns the total number of browsers, both desktop and mobile
@@ -389,8 +437,7 @@ function loadTable(payload, locale, isDebug) {
     // Finds a string in the dictionary for the given language object
     // TODO:  Accomodate for more locales
     function getStringBasedOnLocale(langDictKey, stringKey, obj) {
-        var returnValue = substitute(langDictionary['en'][langDictKey][stringKey], obj || {}) || '[UNKNOWN]';
-        return returnValue;
+        return substitute(langDictionary['en'][langDictKey][stringKey], obj || {}) || '[UNKNOWN]';
     }
 
     // Given an array of objects, this finds the desired object based on provided ID
@@ -414,7 +461,7 @@ function loadTable(payload, locale, isDebug) {
 
     // Wrapper for logging, only logs when isDebug = true
     function log(data) {
-        if(isDebug && console && console.log) {
+        if(isDebug && window.console && console.log) {
             console.log.apply(console, arguments);
         }
         return data;

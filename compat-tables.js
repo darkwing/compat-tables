@@ -72,8 +72,6 @@ function loadTable(payload, locale) {
     };
 
 
-    log('---------------------' + payload.features.name.en + '---------------------');
-
     // Payload Shortcuts
     var tabs = payload.meta.compat_table.tabs;
 
@@ -136,7 +134,6 @@ function loadTable(payload, locale) {
         tab.browsers.forEach(function(browserId) {
             var matchedBrowserObj = findObjectByIdInArray(browserId, payload.linked.browsers);
             var browserName = getLocaleOrDefaultFromObject(matchedBrowserObj.name);
-            
             var slugForCss = matchedBrowserObj.slug; // PROBLEM:  Kind of a big assumption
 
             output += '<th class="bc-browser-' + slugForCss + '">';
@@ -165,8 +162,8 @@ function loadTable(payload, locale) {
 
         // Account for icons in this cell
         if(feature.experimental || feature.standardized === false || feature.obsolete) {
-            output += '<div class="bc-icons">';
 
+            output += '<div class="bc-icons">';
             if(feature.experimental) {
                 output += getExperimentalIcon();
                 setLegendCondition('experimental');
@@ -180,6 +177,7 @@ function loadTable(payload, locale) {
                 setLegendCondition('obsolute');
             }
             output += '</div>';
+
         }
 
         output += '</th>';
@@ -195,8 +193,6 @@ function loadTable(payload, locale) {
                     classes: [],
                     content: ''
                 };
-
-                log(feature.id, '|', browserId, '|', browserFeatureHistory);
 
                 if(browserFeatureHistory) {
 
@@ -219,11 +215,7 @@ function loadTable(payload, locale) {
                     cell.content += getBrowserSupportText(browserVersionObj, currentBrowserObj);
                     setLegendCondition(currentBrowserObj.support);
 
-                    cell.content += substitute(supportTemplate, {
-                        title: getStringBasedOnLocale('supportsLong', currentBrowserObj.support),
-                        icon: currentBrowserObj.support,
-                        text: getStringBasedOnLocale('supportsLong', currentBrowserObj.support)
-                    });
+                    cell.content += getSupportIcon(currentBrowserObj);
 
                     // Add icons for this individual history object
                     cell.content += outputIconsForHistoryObject(currentBrowserObj);
@@ -245,11 +237,8 @@ function loadTable(payload, locale) {
                             var historyItemVersionObject = findObjectByIdInArray(historyItemObject.links.version, payload.linked.versions)
 
                             cell.content += '<dt class="bc-supports-' + historyItemObject.support +' bc-supports">';
-                            cell.content += substitute(supportTemplate, {
-                                title: '{{ PROBLEM }}',
-                                text: '{{ PROBLEM }}',
-                                icon: historyItemObject.support
-                            });
+
+                            cell.content += getSupportIcon(historyItemObject);
 
                             // Add text for the version/support box
                             cell.content += getBrowserSupportText(historyItemVersionObject, historyItemObject);
@@ -473,7 +462,15 @@ function loadTable(payload, locale) {
                 });
     }
 
-};
+    function getSupportIcon(browserObj) {
+        return substitute(supportTemplate, {
+                        title: getStringBasedOnLocale('supportsLong', browserObj.support),
+                        icon: browserObj.support,
+                        text: getStringBasedOnLocale('supportsLong', browserObj.support)
+                    });
+    }
+
+}
 
 
 

@@ -7,6 +7,8 @@
 
     2.  Add browser version feature detail within history dropdowns
 
+    3.  Update "requires_config" logic -- it's wrong
+
 */
 
 function loadTable(payload, locale) {
@@ -84,6 +86,7 @@ function loadTable(payload, locale) {
     // Templates
     var iconTemplate = '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon}" aria-hidden="true"></i></abbr>';
     var supportTemplate = '<abbr title="{title}" class="bc-level bc-level-{icon} only-icon"><span>{text}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>';
+    var historySupportTemplate = iconTemplate + ' {title}';
 
     // Conditions object so we know what to put into the legend
     var legendConditions = {
@@ -200,7 +203,7 @@ function loadTable(payload, locale) {
                     // This will likely need to change in the future
                     // Only remove this item from the browser array if it doesn't fit icon/special criteria
                     currentBrowserObj = findObjectByIdInArray(browserFeatureHistory[browserFeatureHistory.length - 1], payload.linked.supports);
-                    if(!meetsIconCritera(currentBrowserObj)) {
+                    if(!meetsIconCriteria(currentBrowserObj)) {
                         browserFeatureHistory.pop()
                     }
 
@@ -213,9 +216,9 @@ function loadTable(payload, locale) {
 
                     // Add "Yes", "No", "Partial" or {version}
                     cell.content += getBrowserSupportText(browserVersionObj, currentBrowserObj);
-                    setLegendCondition(currentBrowserObj.support);
-
                     cell.content += getSupportIcon(currentBrowserObj);
+
+                    setLegendCondition(currentBrowserObj.support);
 
                     // Add icons for this individual history object
                     cell.content += outputIconsForHistoryObject(currentBrowserObj);
@@ -246,7 +249,7 @@ function loadTable(payload, locale) {
                             
                             cell.content += '</dt>';
 
-                            cell.content += '<dd>&nbsp;</dd>';
+                            cell.content += '<dd>' + outputDetailsForHistoryObject(historyItemObject) + '</dd>';
 
                             setLegendCondition(historyItemObject.support);
                         });
@@ -291,13 +294,17 @@ function loadTable(payload, locale) {
     // ===============================
 
     // Simple true/false logic determining if a browser history object meets "extra info" criteria
-    function meetsIconCritera(historyObject) {
+    function meetsIconCriteria(historyObject) {
         return (historyObject.prefix_mandatory || 
             historyObject.alternate_name_mandatory || 
             historyObject['protected'] || 
             historyObject.notes ||
-            (historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config))
+            meetsConfigCriteria(historyObject)
         );
+    }
+
+    function meetsConfigCriteria(historyObject) {
+        return historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config);
     }
 
     // Evaluate a browser history object, place icons as needed
@@ -305,7 +312,7 @@ function loadTable(payload, locale) {
         var output = '';
 
         // Account for any required icons
-        if(meetsIconCritera(historyObject)) {
+        if(meetsIconCriteria(historyObject)) {
 
             output += '<div class="bc-icons">';
 
@@ -322,7 +329,7 @@ function loadTable(payload, locale) {
             }
 
             // Requires/Default config
-            if(historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config)) {
+            if(meetsConfigCriteria(historyObject)) {
                 output += getConfigIcon(historyObject);
                 setLegendCondition('config');
             }
@@ -344,6 +351,45 @@ function loadTable(payload, locale) {
 
         return output;
     }
+
+
+    // Evaluate a browser history object, place icons and detail text as needed
+    function outputDetailsForHistoryObject(historyObject) {
+        var output = '';
+
+        // Account for any required icons
+        if(meetsIconCriteria(historyObject)) {
+
+            // Browser Prefix
+            if(historyObject.prefix_mandatory) {
+                output += getPrefixIcon(historyObject) + ' ' + getPrefixText(historyObject) + '<br>';
+            }
+
+            // Alternate Name Mandatory
+            if(historyObject.alternate_name_mandatory) {
+                output += getAlternateIcon(historyObject) + ' ' + getAlternateText(historyObject) + '<br>';
+            }
+
+            // Requires/Default config
+            if(meetsConfigCriteria(historyObject)) {
+                output += getConfigIcon(historyObject) + ' ' + getConfigText(historyObject) + '<br>';
+            }
+
+            // Protected
+            if(historyObject['protected']) {
+                output += getProtectedIcon();
+            }
+
+            // Notes
+            if(historyObject.notes) {
+                output += getNotesIcon();
+            }
+
+        }
+
+        return output;
+    }
+
 
     // Set a legend condition key
     function setLegendCondition(key) {
@@ -433,33 +479,42 @@ function loadTable(payload, locale) {
 
     function getConfigIcon(historyObject) {
         return substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('requirements', (historyObject.requires_config && historyObject.default_config) ? 'disabledRequires' : 'disabledDefault', {
-                        'default': historyObject.default_config,
-                        'requires': historyObject.requires_config
-                    }),
+                    title: getConfigText(historyObject),
                     text: getStringBasedOnLocale('requirements', 'disabled'),
                     icon: 'disabled'
                 });
     }
+    function getConfigText(historyObject) {
+        return getStringBasedOnLocale('requirements', (historyObject.requires_config && historyObject.default_config) ? 'disabledRequires' : 'disabledDefault', {
+                        'default': historyObject.default_config,
+                        'requires': historyObject.requires_config
+                    });
+    }
 
     function getAlternateIcon(historyObject) {
         return substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('requirements', 'alternateLong', {
-                        prefix: historyObject.alternate_name
-                    }),
+                    title: getAlternateText(historyObject),
                     text: getStringBasedOnLocale('requirements', 'alternate'),
                     icon: 'altname'
                 });
     }
+    function getAlternateText(historyObject) {
+        return getStringBasedOnLocale('requirements', 'alternateLong', {
+                        prefix: historyObject.alternate_name
+                    });
+    }
 
     function getPrefixIcon(historyObject) {
         return substitute(iconTemplate, {
-                    title: getStringBasedOnLocale('requirements', 'prefixLong', {
-                        prefix: historyObject.prefix
-                    }),
+                    title: getPrefixText(historyObject),
                     text: getStringBasedOnLocale('requirements', 'prefix'),
                     icon: 'prefix'
                 });
+    }
+    function getPrefixText(historyObject) {
+        return getStringBasedOnLocale('requirements', 'prefixLong', {
+                        prefix: historyObject.prefix
+                    });
     }
 
     function getSupportIcon(browserObj) {

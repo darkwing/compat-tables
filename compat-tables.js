@@ -242,8 +242,8 @@ function loadTable(payload, locale) {
 
                             // Add text for the version/support box
                             cell.content += getBrowserSupportText(historyItemVersionObject, historyItemObject);
-
-                            cell.content += outputIconsForHistoryObject(historyItemVersionObject);
+                            cell.content += outputIconsForHistoryObject(historyItemObject);
+                            
                             cell.content += '</dt>';
 
                             cell.content += '<dd>&nbsp;</dd>';

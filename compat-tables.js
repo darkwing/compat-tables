@@ -9,7 +9,7 @@
 
 */
 
-function loadTable(payload, locale, isDebug) {
+function loadTable(payload, locale) {
 
     var langDictionary = {
         en: {
@@ -147,10 +147,6 @@ function loadTable(payload, locale, isDebug) {
                 icon: slugForCss
             });
 
-            output += '</abbr>';
-
-            if(isDebug) output += ' <code class="debug-detail">(' +  browserId +')</code>';
-
             output += '</th>';
         });
     });
@@ -186,9 +182,6 @@ function loadTable(payload, locale, isDebug) {
             output += '</div>';
         }
 
-        if(isDebug) {
-            output += '<br><code class="debug-detail">(' + feature.id + ')</code>';
-        }
         output += '</th>';
 
         tabs.forEach(function(tab) {
@@ -274,10 +267,6 @@ function loadTable(payload, locale, isDebug) {
                 else {
                     cell.classes.push('bc-supports-unknown');
                     cell.content += '?';
-                }
-
-                if(isDebug) {
-                    cell.content += '<br><br><br><br><br><code class="debug-detail-alt" title="feature id">' + feature.id + '</code> <code class="debug-detail-alt2" title="browser id">' + browserId + '</code> <code class="debug-detail" title="result">' + browserFeatureHistory + '</code>';
                 }
 
                 // Provide the browser class regardless of support
@@ -421,14 +410,6 @@ function loadTable(payload, locale, isDebug) {
             if (match.charAt(0) == '\\') return match.slice(1);
             return (object[name] != null) ? object[name] : '';
         });
-    }
-
-    // Wrapper for logging, only logs when isDebug = true
-    function log(data) {
-        if(isDebug && window.console && console.log) {
-            console.log.apply(console, arguments);
-        }
-        return data;
     }
 
     // ICON BUILDERS

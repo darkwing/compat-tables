@@ -50,7 +50,6 @@ body .bc-table .bc-history {
 	{ heading: 'HTMLHtmlElement', data: 'HTMLHtmlElementPayload', file: 'HTMLHtmlElement' }
 ].forEach(function(item) {
 
-	var isDebug = false;
 	var script = document.createElement('script');
 	script.type = 'text/javascript';
 	script.src = './sample-data/' + item.file + '.js';
@@ -62,7 +61,7 @@ body .bc-table .bc-history {
 			document.body.appendChild(heading);
 
 			var container = document.createElement('div');
-			container.innerHTML = loadTable(window[i.data], navigator.language, isDebug);
+			container.innerHTML = loadTable(window[i.data], navigator.language);
 			document.body.appendChild(container);
 		};
 		

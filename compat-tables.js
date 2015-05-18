@@ -3,11 +3,11 @@
     TO DO
     ===============================
 
-    1.  Add browser version feature detail within history dropdowns
-
-    2.  Update "requires_config" logic -- it's wrong;
+    1.  Update "requires_config" logic -- it's wrong;
             -  Fix in legend
             -  Fix in history
+
+    2.  Figure out a way to hack icons in so table displays properly :/
 
 */
 
@@ -50,13 +50,13 @@ function loadTable(payload, locale) {
             // Version requirements
             requirements: {
                 prefix: 'Prefixed',
-                prefixLong: 'Requires the vendor prefix: {prefix}',
+                prefixLong: 'Requires the vendor prefix: <code>{prefix}</code>',
 
-                notes: 'Notes',
-                notesLong: 'See implementation notes',
+                note: 'Notes',
+                noteLong: 'See implementation notes',
 
                 alternate: 'Alternate Name',
-                alternateLong: 'Uses the non-standard name: {name}',
+                alternateLong: 'Uses the non-standard name: <code>{name}</code>',
 
                 'protected': 'Protected',
                 protectedLong: 'Protected. Additonal steps are required to get permission or certification for use.',
@@ -102,7 +102,7 @@ function loadTable(payload, locale) {
         prefix: false,
         alternate: false,
         'protected': false,
-        notes: false,
+        note: false,
         config: false,
 
         // Feature detail
@@ -140,7 +140,7 @@ function loadTable(payload, locale) {
         tab.browsers.forEach(function(browserId) {
             var matchedBrowserObj = findObjectByIdInArray(browserId, payload.linked.browsers);
             var browserName = getLocaleOrDefaultFromObject(matchedBrowserObj.name);
-            var slugForCss = matchedBrowserObj.slug; // PROBLEM:  Kind of a big assumption
+            var slugForCss = matchedBrowserObj.slug;
 
             output += '<th class="bc-browser-' + slugForCss + '">';
 
@@ -302,7 +302,7 @@ function loadTable(payload, locale) {
         return (historyObject.prefix_mandatory || 
             historyObject.alternate_name_mandatory || 
             historyObject['protected'] || 
-            historyObject.notes ||
+            historyObject.note ||
             meetsConfigCriteria(historyObject)
         );
     }
@@ -345,9 +345,9 @@ function loadTable(payload, locale) {
             }
 
             // Notes
-            if(historyObject.notes) {
-                output += getNotesIcon();
-                setLegendCondition('notes');
+            if(historyObject.note) {
+                output += getNoteIcon();
+                setLegendCondition('note');
             }
 
             output += '</div>';
@@ -363,6 +363,8 @@ function loadTable(payload, locale) {
 
         // Account for any required icons
         if(meetsIconCriteria(historyObject)) {
+
+            console.log('history item', historyObject);
 
             // Browser Prefix
             if(historyObject.prefix_mandatory) {
@@ -381,12 +383,12 @@ function loadTable(payload, locale) {
 
             // Protected
             if(historyObject['protected']) {
-                output += getProtectedIcon();
+                output += getProtectedIcon() + 'FIX ME :: PROTECTED';
             }
 
             // Notes
-            if(historyObject.notes) {
-                output += getNotesIcon();
+            if(historyObject.note) {
+                output += getNoteIcon() + getLocaleOrDefaultFromObject(historyObject.note) + '<br>';
             }
 
         }
@@ -415,8 +417,8 @@ function loadTable(payload, locale) {
         if(legendConditions['protected']) {
             output += getLegendHTML(getProtectedIcon(), getStringBasedOnLocale('requirements', 'protectedLong'));
         }
-        if(legendConditions.notes) {
-            output += getLegendHTML(getNotesIcon(), getStringBasedOnLocale('requirements', 'notesLong'));
+        if(legendConditions.note) {
+            output += getLegendHTML(getNoteIcon(), getStringBasedOnLocale('requirements', 'noteLong'));
         }
         if(legendConditions.config) { // FIX ME
             output += getLegendHTML(getConfigIcon(), getConfigText());
@@ -519,8 +521,8 @@ function loadTable(payload, locale) {
         return _getBasicIcon('requirements', 'protectedLong', 'protected');
     }
 
-    function getNotesIcon() {
-        return _getBasicIcon('requirements', 'notesLong', 'notes', 'footnote');
+    function getNoteIcon() {
+        return _getBasicIcon('requirements', 'noteLong', 'note', 'footnote');
     }
 
     function getConfigIcon(historyObject) {

@@ -3,11 +3,11 @@
     TO DO
     ===============================
 
-    1.  Display information within the legend
+    1.  Add browser version feature detail within history dropdowns
 
-    2.  Add browser version feature detail within history dropdowns
-
-    3.  Update "requires_config" logic -- it's wrong
+    2.  Update "requires_config" logic -- it's wrong;
+            -  Fix in legend
+            -  Fix in history
 
 */
 
@@ -68,7 +68,9 @@ function loadTable(payload, locale) {
 
             // Legend text
             legend: {
-                heading: 'Legend'
+                heading: 'Legend',
+                prefixLong: 'Requires a vendor prefix or different name for use.',
+                alternateLong: 'Uses a non-standard name.'
             }
         }
     };
@@ -87,6 +89,7 @@ function loadTable(payload, locale) {
     var iconTemplate = '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon}" aria-hidden="true"></i></abbr>';
     var supportTemplate = '<abbr title="{title}" class="bc-level bc-level-{icon} only-icon"><span>{text}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>';
     var historySupportTemplate = iconTemplate + ' {title}';
+    var legendItemTemplate = '<dt>{icon}</dt><dd>{text}</dd>';
 
     // Conditions object so we know what to put into the legend
     var legendConditions = {
@@ -278,13 +281,14 @@ function loadTable(payload, locale) {
     output += '</table>';
 
     
-    // LEGEND, IF NECESSARY
+    // LEGEND
     // ===============================
     output += '<section class="bc-legend">';
     output += '<h3 class="offscreen">' + getStringBasedOnLocale('legend', 'heading') + '</h3>';
-
+    output += '<dl>' + outputLegend() + '</dl>';
     output += '</section>';
 
+    // Done!
     return output;
 
 
@@ -385,6 +389,48 @@ function loadTable(payload, locale) {
                 output += getNotesIcon();
             }
 
+        }
+
+        return output;
+    }
+
+    // Outputs line items 
+    function outputLegend() {
+        var output = '';
+
+        // Basic supports
+        ['yes', 'partial', 'no'].forEach(function(key) {
+            if(legendConditions[key]) {
+                output += getLegendHTML('<span class="bc-supports-' + key + ' bc-supports">' + getSupportIcon({ support: key }) + '&nbsp;</span>', getStringBasedOnLocale('supportsLong', key));
+            }
+        });
+
+        // Browser support details
+        if(legendConditions.prefix) {
+            output += getLegendHTML(getPrefixIcon(), getStringBasedOnLocale('legend', 'prefixLong'));
+        }
+        if(legendConditions.alternate) {
+            output += getLegendHTML(getAlternateIcon(), getAlternateText());
+        }
+        if(legendConditions['protected']) {
+            output += getLegendHTML(getProtectedIcon(), getStringBasedOnLocale('requirements', 'protectedLong'));
+        }
+        if(legendConditions.notes) {
+            output += getLegendHTML(getNotesIcon(), getStringBasedOnLocale('requirements', 'notesLong'));
+        }
+        if(legendConditions.config) { // FIX ME
+            output += getLegendHTML(getConfigIcon(), getConfigText());
+        }
+
+        // Feature details
+        if(legendConditions.experimental) {
+            output += getLegendHTML(getExperimentalIcon(), getStringBasedOnLocale('features', 'experimentalLong'));
+        }
+        if(legendConditions.nonstandard) {
+            output += getLegendHTML(getNonStandardIcon(), getStringBasedOnLocale('features', 'nonstandardLong'));
+        }
+        if(legendConditions.obsolete) {
+            output += getLegendHTML(getObsoleteIcon(), getStringBasedOnLocale('features', 'obsoleteLong'));
         }
 
         return output;
@@ -499,9 +545,15 @@ function loadTable(payload, locale) {
                 });
     }
     function getAlternateText(historyObject) {
-        return getStringBasedOnLocale('requirements', 'alternateLong', {
-                        prefix: historyObject.alternate_name
-                    });
+        if(historyObject) {
+            return getStringBasedOnLocale('requirements', 'alternateLong', {
+                            prefix: historyObject ? historyObject.alternate_name : ''
+                        });
+        }
+        else {
+            return getStringBasedOnLocale('legend', 'alternateLong');
+        }
+        
     }
 
     function getPrefixIcon(historyObject) {
@@ -513,7 +565,7 @@ function loadTable(payload, locale) {
     }
     function getPrefixText(historyObject) {
         return getStringBasedOnLocale('requirements', 'prefixLong', {
-                        prefix: historyObject.prefix
+                        prefix: historyObject ? historyObject.prefix : ''
                     });
     }
 
@@ -525,7 +577,11 @@ function loadTable(payload, locale) {
                     });
     }
 
+    function getLegendHTML(icon, text) {
+        return substitute(legendItemTemplate, {
+            icon: icon,
+            text: text
+        });
+    }
+
 }
-
-
-

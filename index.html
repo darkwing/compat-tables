@@ -41,6 +41,10 @@ body .bc-table .bc-history {
 </head>
 
 <body>
+	
+<!-- Stubbing in jQuery and Stephanie's work to ensure everything works as required -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" ></script>
+<script src="jquery-actions.js" defer></script>
 
 <script type="text/javascript">
 [
@@ -63,6 +67,9 @@ body .bc-table .bc-history {
 			var container = document.createElement('div');
 			container.innerHTML = loadTable(window[i.data], navigator.language);
 			document.body.appendChild(container);
+
+			//activateCompatTable(container.firstChild);
+			$(container.firstChild).mozCompatTable();
 		};
 		
 	})(item);
@@ -70,10 +77,6 @@ body .bc-table .bc-history {
 	document.body.appendChild(script);
 });
 </script>
-	
-<!-- Stubbing in jQuery and Stephanie's work to ensure everything works as required -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" ></script>
-<script src="jquery-actions.js" defer></script>
 
 </body>
 </html>

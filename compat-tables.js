@@ -229,6 +229,7 @@ function loadTable(payload, locale) {
                     // History stuff goes here
                     // The "latest" browser was pop()'d off, so all items in this array are histroy/older
                     if(browserFeatureHistory.length) {
+                        cell.classes.push('bc-has-history');
 
                         // Add dropdown toggle
                         cell.content += '<a href="' + (feature.mdn_uri || 'javascript:;') + '" title="{{ PROBLEM }}" class="bc-history-link only-icon"><span>{{ PROBLEM }}</span><i class="ic-history" aria-hidden="true"></i></a>';
@@ -363,8 +364,6 @@ function loadTable(payload, locale) {
 
         // Account for any required icons
         if(meetsIconCriteria(historyObject)) {
-
-            console.log('history item', historyObject);
 
             // Browser Prefix
             if(historyObject.prefix_mandatory) {

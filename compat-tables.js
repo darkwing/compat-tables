@@ -86,10 +86,13 @@ function loadTable(payload, locale) {
     var output = '';
 
     // Templates
-    var iconTemplate = '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon}" aria-hidden="true"></i></abbr>';
-    var supportTemplate = '<abbr title="{title}" class="bc-level bc-level-{icon} only-icon"><span>{text}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>';
-    var historySupportTemplate = iconTemplate + ' {title}';
-    var legendItemTemplate = '<dt>{icon}</dt><dd>{text}</dd>';
+    var templates = {
+        icon: '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon}" aria-hidden="true"></i></abbr>',
+        mobile: '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon1}" aria-hidden="true"></i> <i class="ic-{icon2}" aria-hidden="true"></i></abbr>',
+        support: '<abbr title="{title}" class="bc-level bc-level-{icon} only-icon"><span>{text}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>',
+        legendItem: '<dt>{icon}</dt><dd>{text}</dd>'
+    };
+    templates.historySupport = templates.icon + ' {title}';
 
     // Conditions object so we know what to put into the legend
     var legendConditions = {
@@ -121,16 +124,9 @@ function loadTable(payload, locale) {
     output += '<tr class="bc-mediums">';
     output += '<td></td>';
     tabs.forEach(function(tab) {
-        output += '<th colspan="' + tab.browsers.length +'" class="bc-medium-{HELP}">'; // PROBLEM:  No way to identify "bc-medium-{x}" (desktop|mobile) for class
 
-        var tabName = getLocaleOrDefaultFromObject(tab.name);
-        output += substitute(iconTemplate, {
-            title: '{{ PROBLEM }}', // PROBLEM:  No way to identify "Desktop" or "Mobile" for the title
-            text: tabName,
-            icon: '{{ PROBLEM }}' // PROBLEM:  No way to identify "ic-{x}" (desktop|mobile) for class
-        });
+        output += _hackTableHeading(tab);
 
-        output += '</th>';
     });
     output += '</tr>';
 
@@ -138,19 +134,7 @@ function loadTable(payload, locale) {
     output += '<td></td>';
     tabs.forEach(function(tab) {
         tab.browsers.forEach(function(browserId) {
-            var matchedBrowserObj = findObjectByIdInArray(browserId, payload.linked.browsers);
-            var browserName = getLocaleOrDefaultFromObject(matchedBrowserObj.name);
-            var slugForCss = matchedBrowserObj.slug;
-
-            output += '<th class="bc-browser-' + slugForCss + '">';
-
-            output += substitute(iconTemplate, {
-                title: browserName,
-                text: browserName, // PROBLEM:  No way of knowing "for Desktop" (localization issue)
-                icon: slugForCss
-            });
-
-            output += '</th>';
+            output += _hackBrowserIcons(browserId);
         });
     });
     output += '</tr>';
@@ -497,7 +481,7 @@ function loadTable(payload, locale) {
     // ICON BUILDERS
     // ===============================
     function _getBasicIcon(langKey, longTextKey, shortTextKey, icon) {
-        return substitute(iconTemplate, {
+        return substitute(templates.icon, {
                     title: getStringBasedOnLocale(langKey, longTextKey),
                     text: getStringBasedOnLocale(langKey, shortTextKey),
                     icon: (icon || shortTextKey)
@@ -525,7 +509,7 @@ function loadTable(payload, locale) {
     }
 
     function getConfigIcon(historyObject) {
-        return substitute(iconTemplate, {
+        return substitute(templates.icon, {
                     title: getConfigText(historyObject),
                     text: getStringBasedOnLocale('requirements', 'disabled'),
                     icon: 'disabled'
@@ -539,7 +523,7 @@ function loadTable(payload, locale) {
     }
 
     function getAlternateIcon(historyObject) {
-        return substitute(iconTemplate, {
+        return substitute(templates.icon, {
                     title: getAlternateText(historyObject),
                     text: getStringBasedOnLocale('requirements', 'alternate'),
                     icon: 'altname'
@@ -558,7 +542,7 @@ function loadTable(payload, locale) {
     }
 
     function getPrefixIcon(historyObject) {
-        return substitute(iconTemplate, {
+        return substitute(templates.icon, {
                     title: getPrefixText(historyObject),
                     text: getStringBasedOnLocale('requirements', 'prefix'),
                     icon: 'prefix'
@@ -571,7 +555,7 @@ function loadTable(payload, locale) {
     }
 
     function getSupportIcon(browserObj) {
-        return substitute(supportTemplate, {
+        return substitute(templates.support, {
                         title: getStringBasedOnLocale('supportsLong', browserObj.support),
                         icon: browserObj.support,
                         text: getStringBasedOnLocale('supportsLong', browserObj.support)
@@ -579,10 +563,69 @@ function loadTable(payload, locale) {
     }
 
     function getLegendHTML(icon, text) {
-        return substitute(legendItemTemplate, {
+        return substitute(templates.legendItem, {
             icon: icon,
             text: text
         });
+    }
+
+
+
+    // HACKS
+    // ===============================
+    // This section includes temporary hacks to make icons and such display properly
+
+    function _hackTableHeading(tab) {
+        var output = '';
+        var tabName = getLocaleOrDefaultFromObject(tab.name);
+
+        // Hacky vars
+        var tabIcon = (tab.name.en.toLowerCase().indexOf('desktop') != -1 ? 'desktop' : 'mobile');
+
+        output += '<th colspan="' + tab.browsers.length +'" class="bc-medium-' + tabIcon + '">';
+
+        output += substitute(templates.icon, {
+            title: tabName,
+            text: tabName,
+            icon: tabIcon
+        });
+
+        output += '</th>';
+
+        return output;
+    }
+
+    function _hackBrowserIcons(browserId) {
+        var output = '';
+        var matchedBrowserObj = findObjectByIdInArray(browserId, payload.linked.browsers);
+        var browserName = getLocaleOrDefaultFromObject(matchedBrowserObj.name);
+        var icon = matchedBrowserObj.slug;
+        var template = templates.icon;
+        var substituteObject = {
+            title: browserName,
+            text: browserName, // PROBLEM:  No way of knowing "for Desktop" (localization issue)
+            icon: icon
+        };
+
+        if(icon == 'firefox_mobile') {
+            template = templates.mobile;
+            substituteObject.icon1 = 'firefox';
+            substituteObject.icon2 = 'android';
+        }
+        else if(icon == 'opera_mobile') {
+            template = templates.mobile;
+            substituteObject.icon1 = 'opera';
+            substituteObject.icon2 = 'mobile';
+        }
+
+
+        output += '<th class="bc-browser-' + icon + '">';
+
+        output += substitute(template, substituteObject);
+
+        output += '</th>';
+
+        return output;
     }
 
 }

@@ -79,7 +79,7 @@
     content: "\f17b";
 }
 
-.ic-safari:before {
+.ic-safari:before, .ic-safari_mobile:before {
     content: "\e94a";
 }
 
@@ -95,7 +95,7 @@
     content: "\eae6";
 }
 
-.ic-ie:before {
+.ic-ie:before, .ic-internet_explorer:before, .ic-ie_mobile:before {
     content: "\eae7";
 }
 

@@ -41,8 +41,6 @@
                 $td.find('.bc-history').attr('id', historyId);
             });
 
-            $table.find('.bc-has-history').attr('tabindex', 0).attr('aria-expanded', false)//.attr('aria-controls', historyId);
-
             // Listen for clicks on "history" cells
             $table.on('click', '.bc-has-history', function() {
                 closeAndOpenHistory($(this));
@@ -148,8 +146,6 @@
                 } else {
                     $openCell.css('border-bottom', historyHeight + 'px solid transparent');
                 }
-                
-
             }
 
             // Hides the history dropdown for a given cell

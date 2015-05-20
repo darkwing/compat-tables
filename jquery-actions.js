@@ -42,12 +42,20 @@
             });
 
             // Listen for clicks on "history" cells
-            $table.on('click', '.bc-has-history', function() {
-                closeAndOpenHistory($(this));
+            $table.on('click', '.bc-has-history, .bc-history', function() {
+                var $clicked = $(this);
+
+                if($clicked.hasClass('.bc-history')) {
+                    e.stopImmediatePropagation();
+                }
+                closeAndOpenHistory($clicked);
             });
 
             // Listen for clicks on "close" buttons
-            $table.on('click', '.bc-history-button', hideHistory);
+            $table.on('click', '.bc-history-button', function(e) {
+                e.stopImmediatePropagation();
+                hideHistory();
+            });
 
             // Listen for keys to open/close history
             $table.on('keypress', '.bc-has-history', function(ev) {
@@ -102,7 +110,6 @@
                 // left coord of table minus left coord of cell
                 var historyLeft = tableLeft - cellLeft - parseInt(cellLeftBorder, 10) - 1;
 
-
                 // top
                 // can't just to top:100% in CSS because IE messes it up.
 
@@ -119,6 +126,11 @@
 
                 var historyHeight;
                 var windowWidth;
+
+                // Add a close button if one doesn't already exist
+                if($history.find('.bc-history-button').length == 0) {
+                    $historyCloseButton.clone().appendTo($history);
+                }
 
                 // move history where it will display
                 $history.css({

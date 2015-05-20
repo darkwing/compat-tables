@@ -48,9 +48,9 @@ body .bc-table .bc-history {
 
 <script type="text/javascript">
 [
-	//{ heading: 'Display', data: 'displayPayload', file: 'display' },
-	//{ heading: 'transform-origin', data: 'transformOriginPayload', file: 'transform-origin' },
-	//{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' },
+	{ heading: 'Display', data: 'displayPayload', file: 'display' },
+	{ heading: 'transform-origin', data: 'transformOriginPayload', file: 'transform-origin' },
+	{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' },
 	{ heading: 'HTMLHtmlElement', data: 'HTMLHtmlElementPayload', file: 'HTMLHtmlElement' }
 ].forEach(function(item) {
 
@@ -68,7 +68,6 @@ body .bc-table .bc-history {
 			container.innerHTML = loadTable(window[i.data], navigator.language);
 			document.body.appendChild(container);
 
-			//activateCompatTable(container.firstChild);
 			$(container.firstChild).mozCompatTable();
 		};
 		

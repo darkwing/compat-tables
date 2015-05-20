@@ -7,8 +7,6 @@
             -  Fix in legend
             -  Fix in history
 
-    2.  Figure out a way to hack icons in so table displays properly :/
-
 */
 
 function loadTable(payload, locale) {
@@ -293,7 +291,7 @@ function loadTable(payload, locale) {
     }
 
     function meetsConfigCriteria(historyObject) {
-        return historyObject.requires_config && historyObject.default_config && (historyObject.requires_config != historyObject.default_config);
+        historyObject.requires_config > 0 && historyObject.default_config != historyObject.requires_config;
     }
 
     // Evaluate a browser history object, place icons as needed
@@ -617,7 +615,6 @@ function loadTable(payload, locale) {
             substituteObject.icon1 = 'opera';
             substituteObject.icon2 = 'mobile';
         }
-
 
         output += '<th class="bc-browser-' + icon + '">';
 

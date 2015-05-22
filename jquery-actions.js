@@ -39,6 +39,7 @@
                     'aria-controls': historyId
                 });
                 $td.find('.bc-history').attr('id', historyId);
+                $td.find('.bc-history-link').attr('tabIndex', -1);
             });
 
             // Listen for clicks on "history" cells
@@ -70,6 +71,7 @@
                     ev.preventDefault();
                 }
             });
+
 
             // Function which closes any open history, opens the target history
             function closeAndOpenHistory($td) {

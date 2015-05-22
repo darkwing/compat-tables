@@ -144,9 +144,18 @@ function loadTable(payload, locale) {
     output += '<tbody>';
     payload.linked.features.forEach(function(feature) {
 
+        var name = getLocaleOrDefaultFromObject(feature.name);
+
+        console.log('feature', feature, name);
+
         output += '<tr>';
         output += '<th scope="row">';
-        output += getLocaleOrDefaultFromObject(feature.name);
+        if(feature.canonical) {
+            output += '<code>' + name + '</code>';
+        }
+        else {
+            output += name;
+        }
 
         // Account for icons in this cell
         if(feature.experimental || feature.standardized === false || feature.obsolete) {
@@ -186,11 +195,7 @@ function loadTable(payload, locale) {
 
                     // Assume the last item is the "current"
                     // This will likely need to change in the future
-                    // Only remove this item from the browser array if it doesn't fit icon/special criteria
                     currentBrowserObj = findObjectByIdInArray(browserFeatureHistory[browserFeatureHistory.length - 1], payload.linked.supports);
-                    if(!meetsIconCriteria(currentBrowserObj)) {
-                        browserFeatureHistory.pop()
-                    }
 
                     // Determine support via classname
                     cell.classes.push('bc-supports-' + currentBrowserObj.support);
@@ -210,7 +215,8 @@ function loadTable(payload, locale) {
 
                     // History stuff goes here
                     // The "latest" browser was pop()'d off, so all items in this array are histroy/older
-                    if(browserFeatureHistory.length) {
+                    if(browserFeatureHistory.length > 1) {
+
                         cell.classes.push('bc-has-history');
 
                         // Add dropdown toggle
@@ -613,6 +619,11 @@ function loadTable(payload, locale) {
         else if(icon == 'opera_mobile') {
             template = templates.mobile;
             substituteObject.icon1 = 'opera';
+            substituteObject.icon2 = 'mobile';
+        }
+        else if(icon == 'android') {
+            template = templates.mobile;
+            substituteObject.icon1 = 'chrome';
             substituteObject.icon2 = 'mobile';
         }
 

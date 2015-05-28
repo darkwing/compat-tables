@@ -55,8 +55,8 @@
             });
 
             // Listen for clicks on "close" buttons
-            $table.on('click', '.bc-history-button', function(e) {
-                e.stopImmediatePropagation();
+            $table.on('click', '.bc-history-button', function(ev) {
+                ev.stopImmediatePropagation();
                 hideHistory();
             });
 

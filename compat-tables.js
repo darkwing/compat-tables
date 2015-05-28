@@ -146,8 +146,6 @@ function loadTable(payload, locale) {
 
         var name = getLocaleOrDefaultFromObject(feature.name);
 
-        console.log('feature', feature, name);
-
         output += '<tr>';
         output += '<th scope="row">';
         if(feature.canonical) {

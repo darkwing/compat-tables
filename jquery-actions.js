@@ -1,7 +1,9 @@
 (function($) {
 
+    // Private var to assign IDs to history for accessibility purposes
     var historyCount = 0;
 
+    // The close button template
     var $historyCloseButton = $('<button><abbr><span></span><i></i></abbr></button>')
                               .addClass('bc-history-button')
                               .find('abbr')
@@ -17,11 +19,11 @@
                               .end();
 
 
-
+    //  Usage: $('.compat-table').mozCompatTable();
     return jQuery.fn.mozCompatTable = function() {
         return $(this).each(function() {
 
-            // Keep track of what may be open
+            // Keep track of what may be open within this table
             var $openCell;
 
             // If nothing provided, bail
@@ -44,12 +46,12 @@
 
             // Listen for clicks on "history" cells
             $table.on('click', '.bc-has-history, .bc-history', function() {
-                var $clicked = $(this);
+                var $target = $(this);
 
-                if($clicked.hasClass('.bc-history')) {
+                if($target.hasClass('.bc-history')) {
                     e.stopImmediatePropagation();
                 }
-                closeAndOpenHistory($clicked);
+                closeAndOpenHistory($target);
             });
 
             // Listen for clicks on "close" buttons
@@ -98,7 +100,7 @@
             function showHistory() {
 
                 var $row = $openCell.closest('tr');
-                var $history = $openCell.find('.bc-history').outerWidth($table.width() + 'px');
+                var $history = $openCell.find('.bc-history').outerWidth($table.width());
 
                 // get cell coords
                 var cellLeft = $openCell.offset().left;
@@ -136,8 +138,8 @@
 
                 // move history where it will display
                 $history.css({
-                    left: historyLeft + 'px',
-                    top: historyTop + 'px'
+                    left: historyLeft,
+                    top: historyTop
                 });
 
                 // measure height
@@ -149,7 +151,7 @@
                 // set max-height to 0 and visibility to visible
                 $openCell.addClass('active');
                 $openCell.attr('aria-expanded', true);
-                $history.css('height', historyHeight + 'px');
+                $history.css('height', historyHeight);
 
                 // add measured height to history and to the cell/row it is being displayed beneath (CSS handles transition)
                 windowWidth = window.innerWidth;

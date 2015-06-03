@@ -959,3 +959,7 @@ footnotes
     top: 0;
     left: 0;
 }
+
+.something-for-test {
+  -moz-box-sizing: border-box;
+}

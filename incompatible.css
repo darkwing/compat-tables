@@ -3,6 +3,9 @@ ul.tagit {
 	overflow: auto;
     margin-left: inherit; /* usually we don't want the regular ul margins. */
     margin-right: inherit;
+    -moz-box-sizing:    border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
 }
 ul.tagit li {
 	display: block;

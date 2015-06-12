@@ -44,6 +44,8 @@ ul.tagit li.tagit-choice .close .text-icon {
     -moz-box-sizing:    border-box;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
+
+    mask: url('something.gif');
 }
 
 ul.tagit li.tagit-choice input {

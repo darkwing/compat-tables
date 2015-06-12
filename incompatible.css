@@ -20,6 +20,7 @@ ul.tagit li.tagit-choice {
 	padding: .2em 18px .2em .5em;
     position: relative;
     line-height: inherit;
+    mask: url('something.gif');
 }
 ul.tagit li.tagit-new {
 	padding: .25em 4px .25em 0;

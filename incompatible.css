@@ -29,6 +29,8 @@ ul.tagit li.tagit-new {
 ul.tagit li.tagit-choice a.tagit-label {
 	cursor: pointer;
 	text-decoration: none;
+    mask: url('something.gif');
+    filter: 'soemthign';
 }
 ul.tagit li.tagit-choice .close {
 	cursor: pointer;

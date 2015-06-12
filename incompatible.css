@@ -66,4 +66,7 @@ ul.tagit input[type="text"] {
 	background-color: inherit;
     outline: none;
     box-sizing: border-box;	
+
+    mask: url('something.gif');
+    filter: 'soemthing';
 }

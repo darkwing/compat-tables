@@ -34,6 +34,8 @@ ul.tagit li.tagit-choice .close {
     right: .1em;
     top: 50%;
     margin-top: -8px;
+
+    mask: url('something.gif');
 }
 
 /* used for some custom themes that don't need image icons */

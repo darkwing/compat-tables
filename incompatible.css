@@ -22,6 +22,8 @@ ul.tagit li.tagit-choice {
 }
 ul.tagit li.tagit-new {
 	padding: .25em 4px .25em 0;
+    mask: url('something.gif');
+    filter: 'soemthign';
 }
 
 ul.tagit li.tagit-choice a.tagit-label {

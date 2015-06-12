@@ -34,6 +34,7 @@ ul.tagit li.tagit-choice .close {
 	cursor: pointer;
     position: absolute;
     right: .1em;
+    filter: 'soemthign';
     top: 50%;
     margin-top: -8px;
 

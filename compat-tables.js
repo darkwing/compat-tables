@@ -130,9 +130,14 @@ function loadTable(payload, locale) {
 
     output += '<tr class="bc-browsers">';
     output += '<td></td>';
-    tabs.forEach(function(tab) {
+    tabs.forEach(function(tab, tabIndex) {
+        // This is needed to differentiate groups of icons under desktop and mobile
+        // The first cell in the mobile column requires an extra left border
+        var addExtraLeftBorder = 'bc-medium-border';
+
         tab.browsers.forEach(function(browserId) {
-            output += _hackBrowserIcons(browserId);
+            output += _hackBrowserIcons(browserId, addExtraLeftBorder);
+            addExtraLeftBorder = '';
         });
     });
     output += '</tr>';
@@ -177,7 +182,11 @@ function loadTable(payload, locale) {
 
         output += '</th>';
 
-        tabs.forEach(function(tab) {
+        tabs.forEach(function(tab, tabIndex) {
+            // This is needed to differentiate groups of icons under desktop and mobile
+            // The first cell in the mobile column requires an extra left border
+            var addExtraLeftBorder = tabIndex > 0;
+
             tab.browsers.forEach(function(browserId) {
                 var browserFeatureHistory = payload.meta.compat_table.supports[feature.id][browserId];
                 var browserMeta = findObjectByIdInArray(browserId, payload.linked.browsers);
@@ -197,6 +206,12 @@ function loadTable(payload, locale) {
 
                     // Determine support via classname
                     cell.classes.push('bc-supports-' + currentBrowserObj.support);
+
+                    // Apply the extra margin if first cell in second tab
+                    if(addExtraLeftBorder) {
+                        cell.classes.push('bc-medium-border');
+                        addExtraLeftBorder = false;
+                    }
 
                     // Build up the content 
                     // This is going to need a ton of logic 
@@ -597,7 +612,7 @@ function loadTable(payload, locale) {
         return output;
     }
 
-    function _hackBrowserIcons(browserId) {
+    function _hackBrowserIcons(browserId, extraClass) {
         var output = '';
         var matchedBrowserObj = findObjectByIdInArray(browserId, payload.linked.browsers);
         var browserName = getLocaleOrDefaultFromObject(matchedBrowserObj.name);
@@ -625,7 +640,7 @@ function loadTable(payload, locale) {
             substituteObject.icon2 = 'mobile';
         }
 
-        output += '<th class="bc-browser-' + icon + '">';
+        output += '<th class="bc-browser-' + icon + ' ' + extraClass + '">';
 
         output += substitute(template, substituteObject);
 

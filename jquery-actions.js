@@ -8,16 +8,19 @@
                               .addClass('bc-history-button')
                               .find('abbr')
                                 .addClass('only-icon')
-                                .attr('title', 'Return to compatability table.') /* TODO: not #l10n friendly */
+                                .attr('title', gettext('Return to compatability table.'))
                                 .end()
                               .find('span')
-                                .append('Close')/* TODO: not #l10n friendly */
+                                .append(gettext('Close'))
                               .end()
                               .find('i')
                                 .addClass('icon-times')
                                 .attr('aria-hidden', true)
                               .end();
 
+    // Slide requires delay for designed effect
+    var openDelay = 10;
+    var closeDelay = 200;
 
     //  Usage: $('.compat-table').mozCompatTable();
     return jQuery.fn.mozCompatTable = function() {
@@ -132,7 +135,7 @@
                 var windowWidth;
 
                 // Add a close button if one doesn't already exist
-                if($history.find('.bc-history-button').length == 0) {
+                if($history.find('.bc-history-button').length === 0) {
                     $historyCloseButton.clone().appendTo($history);
                 }
 
@@ -145,30 +148,33 @@
                 // measure height
                 $history.css('display', 'block');
                 $history.attr('aria-hidden', false);
-                
+
                 historyHeight = $history.outerHeight();
 
                 // set max-height to 0 and visibility to visible
                 $openCell.addClass('active');
                 $openCell.attr('aria-expanded', true);
-                $history.css('height', historyHeight);
 
-                // add measured height to history and to the cell/row it is being displayed beneath (CSS handles transition)
-                windowWidth = window.innerWidth;
-                if(windowWidth > 801) {
-                    $row.find('th, td').css('border-bottom', historyHeight + 'px solid transparent');
-                } if(windowWidth > 481) {
-                    $row.find('td').css('border-bottom', historyHeight + 'px solid transparent');
-                } else {
-                    $openCell.css('border-bottom', historyHeight + 'px solid transparent');
-                }
+                setTimeout(function() {
+                    $history.css('height', historyHeight);
+
+                    // add measured height to history and to the cell/row it is being displayed beneath (CSS handles transition)
+                    windowWidth = window.innerWidth;
+                    if(windowWidth > 801) {
+                        $row.find('th, td').css('border-bottom', historyHeight + 'px solid transparent');
+                    } if(windowWidth > 481) {
+                        $row.find('td').css('border-bottom', historyHeight + 'px solid transparent');
+                    } else {
+                        $openCell.css('border-bottom', historyHeight + 'px solid transparent');
+                    }
+                }, openDelay);
             }
 
             // Hides the history dropdown for a given cell
             function hideHistory(){
-                if(!$openCell) return;
+                var $history, $delayCloseCell;
 
-                var $history;
+                if(!$openCell) return;
 
                 $openCell.css('border-bottom', '').attr('aria-expanded', false);
                 $openCell.closest('tr').find('th, td').css('border-bottom', '');
@@ -181,8 +187,11 @@
                     $openCell.focus();
                 }
 
-                $openCell.removeClass('active');
-                $history.css('display', 'none');
+                $delayCloseCell = $openCell;
+                setTimeout(function() {
+                    $delayCloseCell.removeClass('active');
+                    $history.css('display', 'none');
+                }, closeDelay);
             }
         });
     };

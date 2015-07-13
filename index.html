@@ -48,10 +48,10 @@ body .bc-table .bc-history {
 
 <script type="text/javascript">
 [
-	{ heading: 'Display', data: 'displayPayload', file: 'display' },
+	//{ heading: 'Display', data: 'displayPayload', file: 'display' },
 	{ heading: 'transform-origin', data: 'transformOriginPayload', file: 'transform-origin' },
-	{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' },
-	{ heading: 'HTMLHtmlElement', data: 'HTMLHtmlElementPayload', file: 'HTMLHtmlElement' }
+	//{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' },
+	//{ heading: 'HTMLHtmlElement', data: 'HTMLHtmlElementPayload', file: 'HTMLHtmlElement' }
 ].forEach(function(item) {
 
 	var script = document.createElement('script');
@@ -75,6 +75,8 @@ body .bc-table .bc-history {
 
 	document.body.appendChild(script);
 });
+
+function gettext(x) { return x; }
 </script>
 
 </body>

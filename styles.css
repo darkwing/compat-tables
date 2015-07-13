@@ -963,3 +963,7 @@ footnotes
 .something-for-test {
   -moz-box-sizing: border-box;
 }
+
+.bc-mediums th + th, .bc-medium-border {
+    border-left: 4px solid #fff !important;
+}

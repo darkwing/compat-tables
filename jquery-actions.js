@@ -170,25 +170,6 @@
 
                 if(!$openCell) return;
 
-                /*
-                $openCell.css('border-bottom', '').attr('aria-expanded', false);
-                $openCell.closest('tr').find('th, td').css('border-bottom', '');
-
-                $history = $openCell.find('.bc-history');
-                $history.css('height', '').attr('aria-hidden', true);
-
-                // if the focus is inside the .bc-history and we'd lose our keyboard place, move focus to parent
-                if($.contains($openCell.get(0), document.activeElement)) {
-                    $openCell.focus();
-                }
-
-                $delayCloseCell = $openCell;
-                setTimeout(function() {
-                    $delayCloseCell.removeClass('active');
-                    $history.css('display', 'none');
-                }, closeDelay);
-                */
-
                 $openCell.attr('aria-expanded', false).stop().animate({ borderBottomWidth: '' });
                 $openCell.closest('tr').find('th, td').stop().animate({ borderBottomWidth: '' });
 

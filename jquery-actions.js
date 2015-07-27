@@ -145,7 +145,6 @@
 
                 // measure height
                 $history.css('display', 'block').attr('aria-hidden', false);
-
                 historyHeight = $history.outerHeight();
 
                 // set max-height to 0 and visibility to visible
@@ -161,7 +160,7 @@
                     $subject = $openCell;
                 }
 
-                $history.stop().animate({ height: historyHeight });
+                $history.css('height', 0).stop().animate({ height: historyHeight });
                 $subject.stop().animate({ borderBottomWidth: historyHeight });
             }
 
@@ -197,7 +196,7 @@
                 $delayCloseCell = $openCell;
                 $history.attr('aria-hidden', true).stop().animate({ height: '' }, function() {
                     $delayCloseCell.removeClass('active');
-                    //$history.css('display', 'none');
+                    $history.css('display', 'none').css('height', 'auto');
                 });
 
                 // if the focus is inside the .bc-history and we'd lose our keyboard place, move focus to parent

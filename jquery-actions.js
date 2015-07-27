@@ -133,6 +133,7 @@
 
                 var historyHeight;
                 var windowWidth;
+                var $subject;
 
                 // Add a close button if one doesn't already exist
                 if($history.find('.bc-history-button').length === 0) {
@@ -140,34 +141,28 @@
                 }
 
                 // move history where it will display
-                $history.css({
-                    left: historyLeft,
-                    top: historyTop
-                });
+                $history.css({ left: historyLeft, top: historyTop });
 
                 // measure height
-                $history.css('display', 'block');
-                $history.attr('aria-hidden', false);
+                $history.css('display', 'block').attr('aria-hidden', false);
 
                 historyHeight = $history.outerHeight();
 
                 // set max-height to 0 and visibility to visible
-                $openCell.addClass('active');
-                $openCell.attr('aria-expanded', true);
+                $openCell.addClass('active').attr('aria-expanded', true);
 
-                setTimeout(function() {
-                    $history.css('height', historyHeight);
+                // add measured height to history and to the cell/row it is being displayed beneath (CSS handles transition)
+                windowWidth = window.innerWidth;
+                if(windowWidth > 801) {
+                    $subject = $row.find('th, td');
+                } if(windowWidth > 481) {
+                    $subject = $row.find('td');
+                } else {
+                    $subject = $openCell;
+                }
 
-                    // add measured height to history and to the cell/row it is being displayed beneath (CSS handles transition)
-                    windowWidth = window.innerWidth;
-                    if(windowWidth > 801) {
-                        $row.find('th, td').css('border-bottom', historyHeight + 'px solid transparent');
-                    } if(windowWidth > 481) {
-                        $row.find('td').css('border-bottom', historyHeight + 'px solid transparent');
-                    } else {
-                        $openCell.css('border-bottom', historyHeight + 'px solid transparent');
-                    }
-                }, openDelay);
+                $history.stop().animate({ height: historyHeight });
+                $subject.stop().animate({ borderBottomWidth: historyHeight });
             }
 
             // Hides the history dropdown for a given cell
@@ -176,6 +171,7 @@
 
                 if(!$openCell) return;
 
+                /*
                 $openCell.css('border-bottom', '').attr('aria-expanded', false);
                 $openCell.closest('tr').find('th, td').css('border-bottom', '');
 
@@ -192,6 +188,22 @@
                     $delayCloseCell.removeClass('active');
                     $history.css('display', 'none');
                 }, closeDelay);
+                */
+
+                $openCell.attr('aria-expanded', false).stop().animate({ borderBottomWidth: '' });
+                $openCell.closest('tr').find('th, td').stop().animate({ borderBottomWidth: '' });
+
+                $history = $openCell.find('.bc-history');
+                $delayCloseCell = $openCell;
+                $history.attr('aria-hidden', true).stop().animate({ height: '' }, function() {
+                    $delayCloseCell.removeClass('active');
+                    //$history.css('display', 'none');
+                });
+
+                // if the focus is inside the .bc-history and we'd lose our keyboard place, move focus to parent
+                if($.contains($openCell.get(0), document.activeElement)) {
+                    $openCell.focus();
+                }
             }
         });
     };

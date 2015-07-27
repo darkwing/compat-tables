@@ -507,7 +507,7 @@ Table styling that is not layout related
 .bc-table tr {
     position: relative;
     border-bottom: 0px solid transparent;
-    transition: border-bottom 0.2s ease-out;
+    /* transition: border-bottom 0.2s ease-out; */
 }
 
 .bc-table th,
@@ -517,7 +517,7 @@ Table styling that is not layout related
     border-top: 1px solid #fff;
     border-left: 1px solid #fff;
     border-bottom: 0px solid transparent;
-    transition: border-bottom 0.2s ease-out;
+    /* transition: border-bottom 0.2s ease-out; */
     text-align: center;
 }
 
@@ -817,7 +817,7 @@ History
         visibility: visible;
         height: 0;
         padding-left: 200px;
-        transition: height 0.2s ease-out;
+        /* transition: height 0.2s ease-out; */
     }
 
     .bc-history:before {

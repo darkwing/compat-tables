@@ -71,27 +71,24 @@
 
 
             // Function which closes any open history, opens the target history
+            // Acts as the "router" for open and close directives
             function closeAndOpenHistory($td) {
                 if(animating) {
                     return console.log('Ignoring "closeAndOpenHistory" animation');
                 }
 
-                console.log('$openCell is: ', $openCell);
+                // If no cell is open at the moment, skip the "close" step and just open it
                 if(!$openCell) {
-                    console.log('HERE');
                     return _open($td);
                 }
 
-                var previousOpenCell = $openCell && $openCell.get(0);
-
                 // If they clicks the same cell (are closing), we can leave now
+                var previousOpenCell = $openCell && $openCell.get(0);
                 if($td.get(0) === previousOpenCell) {
                     $td = null;
                 }
 
-                console.log('$td is: ', $td);
-
-                // Close what's open, if anything
+                // Close what's open, if anything, and open if $td has a value
                 hideHistory($td);
             }
 
@@ -101,8 +98,6 @@
                 if(animating) {
                     return console.log('Ignoring "showHistory" animation');
                 }
-
-                console.log('showHistory for: ', $openCell.get(0));
 
                 var $row = $openCell.closest('tr');
                 var $history = $openCell.find('.bc-history').outerWidth($table.width());
@@ -170,26 +165,17 @@
             function hideHistory($td) {
                 var $history, $delayCloseCell;
 
-                if(!$openCell) {
-                    if($td) {
-                        _open($td);
-                    }
-                    return;
-                }
-
                 if(animating) {
                     return console.log('Ignoring "hideHistory" animation');
                 }
 
-                console.log('hideHistory for: ', $openCell.get(0));
-
+                // Animate the borders back down
                 $openCell.attr('aria-expanded', false).stop().animate({ borderBottomWidth: '' }, animationDuration);
                 $openCell.closest('tr').find('th, td').stop().animate({ borderBottomWidth: '' }, animationDuration);
 
                 $history = $openCell.find('.bc-history');
-                $delayCloseCell = $openCell;
                 $history.attr('aria-hidden', true).stop().animate({ height: '' }, animationDuration, function() {
-                    $delayCloseCell.removeClass('active');
+                    $openCell.removeClass('active');
                     $history.css('display', 'none').css('height', 'auto');
                     $openCell = null;
 
@@ -204,7 +190,7 @@
                 }
             }
 
-            // Opens a cell
+            // Opens a cell and records it
             function _open($td) {
                 // Set this cell as open
                 $openCell = $td;

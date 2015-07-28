@@ -1,37 +1,25 @@
-(function($) {
+(function(win, doc, $) {
 
     // Private var to assign IDs to history for accessibility purposes
     var historyCount = 0;
 
     // The close button template
-    var $historyCloseButton = $('<button><abbr><span></span><i></i></abbr></button>')
-                              .addClass('bc-history-button')
-                              .find('abbr')
-                                .addClass('only-icon')
-                                .attr('title', gettext('Return to compatability table.'))
-                                .end()
-                              .find('span')
-                                .append(gettext('Close'))
-                              .end()
-                              .find('i')
-                                .addClass('icon-times')
-                                .attr('aria-hidden', true)
-                              .end();
+    var $historyCloseButton = $('<button class="bc-history-button"><abbr class="only-icon" title="' + gettext('Return to compatability table.') + '"><span>' + gettext('Close') + '</span><i class="icon-times" aria-hidden="true"></i></abbr></button>');
 
-    // Slide requires delay for designed effect
-    var openDelay = 10;
-    var closeDelay = 200;
+    var animationDuration = 200;
 
     //  Usage: $('.compat-table').mozCompatTable();
     return jQuery.fn.mozCompatTable = function() {
+
         return $(this).each(function() {
+
+            var $table = $(this);
 
             // Keep track of what may be open within this table
             var $openCell;
 
-            // If nothing provided, bail
-            var $table = $(this);
-            if(!$table.length) return;
+            // This limits very quick opening and closing of cells which results in incorrect height counts
+            var animating = false;
 
             // Activate all history cells for keyboard;  TODO:  add "aria-controls"
             $table.find('.bc-has-history').each(function() {
@@ -48,13 +36,17 @@
             });
 
             // Listen for clicks on "history" cells
-            $table.on('click', '.bc-has-history, .bc-history', function() {
-                var $target = $(this);
+            $table.on('click', '.bc-has-history', function(e) {
+                var $actualTarget = $(e.target);
 
-                if($target.hasClass('.bc-history')) {
+                // Don't do open/close if the user clicks within the history section
+                if($actualTarget.parents('.bc-history').length || $actualTarget.hasClass('bc-history')) {
                     e.stopImmediatePropagation();
+                    return;
                 }
-                closeAndOpenHistory($target);
+
+                // Close previous cell, open the next one
+                closeAndOpenHistory($(this));
             });
 
             // Listen for clicks on "close" buttons
@@ -80,27 +72,37 @@
 
             // Function which closes any open history, opens the target history
             function closeAndOpenHistory($td) {
-                var previousOpenCell = $openCell && $openCell.get(0);
-
-                // Close what's open, if anything
-                hideHistory();
-
-                // If they clicks the same cell (are closing), we can leave now
-                if($td.get(0) == previousOpenCell) {
-                    $openCell = false;
-                    return;
+                if(animating) {
+                    return console.log('Ignoring "closeAndOpenHistory" animation');
                 }
 
-                // Set this cell as open
-                $openCell = $td;
+                console.log('$openCell is: ', $openCell);
+                if(!$openCell) {
+                    console.log('HERE');
+                    return _open($td);
+                }
 
-                // Show!
-                showHistory();
+                var previousOpenCell = $openCell && $openCell.get(0);
+
+                // If they clicks the same cell (are closing), we can leave now
+                if($td.get(0) === previousOpenCell) {
+                    $td = null;
+                }
+
+                console.log('$td is: ', $td);
+
+                // Close what's open, if anything
+                hideHistory($td);
             }
 
 
             // Opens the history for a given item
             function showHistory() {
+                if(animating) {
+                    return console.log('Ignoring "showHistory" animation');
+                }
+
+                console.log('showHistory for: ', $openCell.get(0));
 
                 var $row = $openCell.closest('tr');
                 var $history = $openCell.find('.bc-history').outerWidth($table.width());
@@ -116,9 +118,6 @@
 
                 // left coord of table minus left coord of cell
                 var historyLeft = tableLeft - cellLeft - parseInt(cellLeftBorder, 10) - 1;
-
-                // top
-                // can't just to top:100% in CSS because IE messes it up.
 
                 // get cell height
                 var cellTop = $openCell.outerHeight();
@@ -151,41 +150,68 @@
                 $openCell.addClass('active').attr('aria-expanded', true);
 
                 // add measured height to history and to the cell/row it is being displayed beneath (CSS handles transition)
-                windowWidth = window.innerWidth;
+                windowWidth = win.innerWidth;
                 if(windowWidth > 801) {
                     $subject = $row.find('th, td');
-                } if(windowWidth > 481) {
+                } else if(windowWidth > 481) {
                     $subject = $row.find('td');
                 } else {
                     $subject = $openCell;
                 }
 
-                $history.css('height', 0).stop().animate({ height: historyHeight });
-                $subject.stop().animate({ borderBottomWidth: historyHeight });
+                animating = true;
+                $history.css('height', 0).stop().animate({ height: historyHeight }, animationDuration);
+                $subject.stop().animate({ borderBottomWidth: historyHeight }, animationDuration, function() {
+                    animating = false;
+                });
             }
 
             // Hides the history dropdown for a given cell
-            function hideHistory(){
+            function hideHistory($td) {
                 var $history, $delayCloseCell;
 
-                if(!$openCell) return;
+                if(!$openCell) {
+                    if($td) {
+                        _open($td);
+                    }
+                    return;
+                }
 
-                $openCell.attr('aria-expanded', false).stop().animate({ borderBottomWidth: '' });
-                $openCell.closest('tr').find('th, td').stop().animate({ borderBottomWidth: '' });
+                if(animating) {
+                    return console.log('Ignoring "hideHistory" animation');
+                }
+
+                console.log('hideHistory for: ', $openCell.get(0));
+
+                $openCell.attr('aria-expanded', false).stop().animate({ borderBottomWidth: '' }, animationDuration);
+                $openCell.closest('tr').find('th, td').stop().animate({ borderBottomWidth: '' }, animationDuration);
 
                 $history = $openCell.find('.bc-history');
                 $delayCloseCell = $openCell;
-                $history.attr('aria-hidden', true).stop().animate({ height: '' }, function() {
+                $history.attr('aria-hidden', true).stop().animate({ height: '' }, animationDuration, function() {
                     $delayCloseCell.removeClass('active');
                     $history.css('display', 'none').css('height', 'auto');
+                    $openCell = null;
+
+                    if($td) {
+                        _open($td);
+                    }
                 });
 
                 // if the focus is inside the .bc-history and we'd lose our keyboard place, move focus to parent
-                if($.contains($openCell.get(0), document.activeElement)) {
+                if($.contains($openCell.get(0), doc.activeElement)) {
                     $openCell.focus();
                 }
+            }
+
+            // Opens a cell
+            function _open($td) {
+                // Set this cell as open
+                $openCell = $td;
+                // Show!
+                showHistory();
             }
         });
     };
 
-})(jQuery);
+})(window, document, jQuery);

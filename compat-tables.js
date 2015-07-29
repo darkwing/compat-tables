@@ -133,7 +133,7 @@ function loadTable(payload, locale) {
     tabs.forEach(function(tab, tabIndex) {
         // This is needed to differentiate groups of icons under desktop and mobile
         // The first cell in the mobile column requires an extra left border
-        var addExtraLeftBorder = 'bc-medium-border';
+        var addExtraLeftBorder = tabIndex ? 'bc-medium-border' : '';
 
         tab.browsers.forEach(function(browserId) {
             output += _hackBrowserIcons(browserId, addExtraLeftBorder);
@@ -198,6 +198,12 @@ function loadTable(payload, locale) {
                     content: ''
                 };
 
+                // Apply the extra margin if first cell in second tab
+                if(addExtraLeftBorder) {
+                    cell.classes.push('bc-medium-border');
+                    addExtraLeftBorder = false;
+                }
+
                 if(browserFeatureHistory) {
 
                     // Assume the last item is the "current"
@@ -206,12 +212,6 @@ function loadTable(payload, locale) {
 
                     // Determine support via classname
                     cell.classes.push('bc-supports-' + currentBrowserObj.support);
-
-                    // Apply the extra margin if first cell in second tab
-                    if(addExtraLeftBorder) {
-                        cell.classes.push('bc-medium-border');
-                        addExtraLeftBorder = false;
-                    }
 
                     // Build up the content 
                     // This is going to need a ton of logic 

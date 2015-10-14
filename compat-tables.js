@@ -9,6 +9,7 @@
 
 */
 
+
 function loadTable(payload, locale) {
 
     var langDictionary = {
@@ -16,7 +17,8 @@ function loadTable(payload, locale) {
             // Browser Types
             browserTypes: {
                 desktop: 'Desktop',
-                mobile: 'Mobile'
+                mobile: 'Mobile',
+                non: 'Non-Browser Environment'
             },
 
             // Basic yes and no
@@ -35,6 +37,8 @@ function loadTable(payload, locale) {
 
             // Features, used in the left-most column
             features: {
+                basicsupport: 'Basic Support',
+
                 experimental: 'Experimental',
                 experimentalLong: 'Experimental. Expect behavior to change in the future.',
 
@@ -44,7 +48,7 @@ function loadTable(payload, locale) {
                 obsolete: 'Obsolete',
                 obsoleteLong: 'Obsolete. Not for use in new websites.'
             },
-            
+
             // Version requirements
             requirements: {
                 prefix: 'Prefixed',
@@ -60,15 +64,16 @@ function loadTable(payload, locale) {
                 protectedLong: 'Protected. Additonal steps are required to get permission or certification for use.',
 
                 disabled: 'Disabled',
-                disabledRequires: 'The user must change {default} to {requires} to enable this feature.',
-                disabledDefault: 'The user must change {default} to enable this feature.'
+                disabledRequires: 'The user must change <code>{default}</code> to <code>{requires}</code> to enable this feature.',
+                disabledDefault: 'The user must change <code>{default} to enable this feature.'
             },
 
             // Legend text
             legend: {
                 heading: 'Legend',
                 prefixLong: 'Requires a vendor prefix or different name for use.',
-                alternateLong: 'Uses a non-standard name.'
+                alternateLong: 'Uses a non-standard name.',
+                disabledLong: 'User must explicitly enable this feature.'
             }
         }
     };
@@ -86,8 +91,8 @@ function loadTable(payload, locale) {
     // Templates
     var templates = {
         icon: '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon}" aria-hidden="true"></i></abbr>',
-        mobile: '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon1}" aria-hidden="true"></i> <i class="ic-{icon2}" aria-hidden="true"></i></abbr>',
-        support: '<abbr title="{title}" class="bc-level bc-level-{icon} only-icon"><span>{text}</span><img src="support-sprite.gif" aria-hidden="true"></abbr>',
+        iconx2: '<abbr title="{title}" class="only-icon"><span>{text}</span><i class="ic-{icon1}" aria-hidden="true"></i> <i class="ic-{icon2}" aria-hidden="true"></i></abbr>',
+        support: '<abbr title="{title}" class="bc-level bc-level-{icon} only-icon"><span>{text}</span><img src="/media/img/wiki-compat-tables-support-sprite.gif" aria-hidden="true"></abbr>',
         legendItem: '<dt>{icon}</dt><dd>{text}</dd>'
     };
     templates.historySupport = templates.icon + ' {title}';
@@ -98,7 +103,7 @@ function loadTable(payload, locale) {
         yes: false,
         partial: false,
         no: false,
-        
+
         // Individual browser support details
         prefix: false,
         alternate: false,
@@ -133,7 +138,7 @@ function loadTable(payload, locale) {
     tabs.forEach(function(tab, tabIndex) {
         // This is needed to differentiate groups of icons under desktop and mobile
         // The first cell in the mobile column requires an extra left border
-        var addExtraLeftBorder = 'bc-medium-border';
+        var addExtraLeftBorder = tabIndex ? 'bc-medium-border' : '';
 
         tab.browsers.forEach(function(browserId) {
             output += _hackBrowserIcons(browserId, addExtraLeftBorder);
@@ -147,13 +152,48 @@ function loadTable(payload, locale) {
     // BODY
     // ===============================
     output += '<tbody>';
-    payload.linked.features.forEach(function(feature) {
 
+    // current feature aka Basic Support
+    output += outputFeatureRow(payload.features, true);
+
+    // each linked feature
+    payload.linked.features.forEach( function(feature){
+        output += outputFeatureRow(feature);
+    });
+
+    output += '</tbody>';
+
+    // Table close
+    output += '</table>';
+
+
+    // LEGEND
+    // ===============================
+    output += '<section class="bc-legend">';
+    output += '<h3 class="offscreen">' + getStringBasedOnLocale('legend', 'heading') + '</h3>';
+    output += '<dl>' + outputLegend() + '</dl>';
+    output += '</section>';
+
+    // Done!
+    return output;
+
+
+
+
+    // UTILITY FUNCTIONS
+    // ===============================
+
+    // creates a table row based on feature input
+    function outputFeatureRow(feature, isBasicSupport) {
+        isBasicSupport = typeof isBasicSupport !== 'undefined' ? isBasicSupport : false;
+        var output = '';
         var name = getLocaleOrDefaultFromObject(feature.name);
 
         output += '<tr>';
         output += '<th scope="row">';
-        if(feature.canonical) {
+        if(isBasicSupport){
+            output += getStringBasedOnLocale('features', 'basicsupport');
+        }else if(feature.canonical) {
             output += '<code>' + name + '</code>';
         }
         else {
@@ -198,8 +238,12 @@ function loadTable(payload, locale) {
                     content: ''
                 };
 
+                // Apply the extra margin if first cell in second tab
+                if(addExtraLeftBorder) {
+                    cell.classes.push('bc-medium-border');
+                    addExtraLeftBorder = false;
+                }
                 if(browserFeatureHistory) {
-
                     // Assume the last item is the "current"
                     // This will likely need to change in the future
                     currentBrowserObj = findObjectByIdInArray(browserFeatureHistory[browserFeatureHistory.length - 1], payload.linked.supports);
@@ -207,14 +251,8 @@ function loadTable(payload, locale) {
                     // Determine support via classname
                     cell.classes.push('bc-supports-' + currentBrowserObj.support);
 
-                    // Apply the extra margin if first cell in second tab
-                    if(addExtraLeftBorder) {
-                        cell.classes.push('bc-medium-border');
-                        addExtraLeftBorder = false;
-                    }
-
-                    // Build up the content 
-                    // This is going to need a ton of logic 
+                    // Build up the content
+                    // This is going to need a ton of logic
                     browserVersionObj = findObjectByIdInArray(currentBrowserObj.links.version, payload.linked.versions);
 
                     // Add "Yes", "No", "Partial" or {version}
@@ -227,13 +265,13 @@ function loadTable(payload, locale) {
                     cell.content += outputIconsForHistoryObject(currentBrowserObj);
 
                     // History stuff goes here
-                    // The "latest" browser was pop()'d off, so all items in this array are histroy/older
-                    if(browserFeatureHistory.length > 1) {
+                    var needsHistory = meetsHistoryCriteria(currentBrowserObj, browserFeatureHistory);
+                    if(needsHistory) {
 
                         cell.classes.push('bc-has-history');
 
                         // Add dropdown toggle
-                        cell.content += '<a href="' + (feature.mdn_uri || 'javascript:;') + '" title="{{ PROBLEM }}" class="bc-history-link only-icon"><span>{{ PROBLEM }}</span><i class="ic-history" aria-hidden="true"></i></a>';
+                        cell.content += '<a href="' + (feature.mdn_uri || 'javascript:;') + '" title="Open" class="bc-history-link only-icon"><span>Open</span><i class="ic-history" aria-hidden="true"></i></a>';
 
                         // Setup the section
                         cell.content += '<section class="bc-history hidden" aria-hidden="true"><dl>';
@@ -242,7 +280,7 @@ function loadTable(payload, locale) {
                         browserFeatureHistory.reverse();
                         browserFeatureHistory.forEach(function(historyItemId) {
                             var historyItemObject = findObjectByIdInArray(historyItemId, payload.linked.supports);
-                            var historyItemVersionObject = findObjectByIdInArray(historyItemObject.links.version, payload.linked.versions)
+                            var historyItemVersionObject = findObjectByIdInArray(historyItemObject.links.version, payload.linked.versions);
 
                             cell.content += '<dt class="bc-supports-' + historyItemObject.support +' bc-supports">';
 
@@ -251,7 +289,7 @@ function loadTable(payload, locale) {
                             // Add text for the version/support box
                             cell.content += getBrowserSupportText(historyItemVersionObject, historyItemObject);
                             cell.content += outputIconsForHistoryObject(historyItemObject);
-                            
+
                             cell.content += '</dt>';
 
                             cell.content += '<dd>' + outputDetailsForHistoryObject(historyItemObject) + '</dd>';
@@ -275,42 +313,31 @@ function loadTable(payload, locale) {
         });
 
         output += '</tr>';
-    });
+        return output;
+    }
 
-    output += '</tbody>';
-
-    // Table close
-    output += '</table>';
-
-    
-    // LEGEND
-    // ===============================
-    output += '<section class="bc-legend">';
-    output += '<h3 class="offscreen">' + getStringBasedOnLocale('legend', 'heading') + '</h3>';
-    output += '<dl>' + outputLegend() + '</dl>';
-    output += '</section>';
-
-    // Done!
-    return output;
-
-
-
-
-    // UTILITY FUNCTIONS
-    // ===============================
+    function meetsHistoryCriteria(currentBrowserObj, browserFeatureHistory) {
+        if(browserFeatureHistory.length > 1){
+            return true;
+        } else if(meetsIconCriteria(currentBrowserObj)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     // Simple true/false logic determining if a browser history object meets "extra info" criteria
     function meetsIconCriteria(historyObject) {
-        return (historyObject.prefix_mandatory || 
-            historyObject.alternate_name_mandatory || 
-            historyObject['protected'] || 
+        return (historyObject.prefix_mandatory ||
+            historyObject.alternate_name_mandatory ||
+            historyObject['protected'] ||
             historyObject.note ||
             meetsConfigCriteria(historyObject)
         );
     }
 
     function meetsConfigCriteria(historyObject) {
-        historyObject.requires_config > 0 && historyObject.default_config != historyObject.requires_config;
+        return historyObject.requires_config > 0 && historyObject.default_config != historyObject.requires_config;
     }
 
     // Evaluate a browser history object, place icons as needed
@@ -393,10 +420,14 @@ function loadTable(payload, locale) {
 
         }
 
+        if(output === '') {
+            output += '&nbsp';
+        }
+
         return output;
     }
 
-    // Outputs line items 
+    // Outputs line items
     function outputLegend() {
         var output = '';
 
@@ -421,7 +452,7 @@ function loadTable(payload, locale) {
             output += getLegendHTML(getNoteIcon(), getStringBasedOnLocale('requirements', 'noteLong'));
         }
         if(legendConditions.config) { // FIX ME
-            output += getLegendHTML(getConfigIcon(), getConfigText());
+            output += getLegendHTML(getConfigIcon(), getStringBasedOnLocale('legend', 'disabledLong'));
         }
 
         // Feature details
@@ -446,7 +477,7 @@ function loadTable(payload, locale) {
 
     // Returns either the browser version number or "Yes" / "No" / "Partial"  for support text blocks
     function getBrowserSupportText(versionObj, browserObj) {
-        if(versionObj && versionObj.version) {
+        if(versionObj && versionObj.version && versionObj.version != 'current') {
             return versionObj.version;
         }
         else {
@@ -479,6 +510,7 @@ function loadTable(payload, locale) {
     // Given an array of objects, this finds the desired object based on provided ID
     function findObjectByIdInArray(id, array) {
         var match;
+        var id = String(id)
         array.forEach(function(obj) {
             if(match) return;
             if(obj.id === id) match = obj;
@@ -491,7 +523,7 @@ function loadTable(payload, locale) {
     function substitute(str, object) {
         return str.replace((/\\?\{([^{}]+)\}/g), function(match, name) {
             if (match.charAt(0) == '\\') return match.slice(1);
-            return (object[name] != null) ? object[name] : '';
+            return (object[name] !== null) ? object[name] : '';
         });
     }
 
@@ -555,7 +587,7 @@ function loadTable(payload, locale) {
         else {
             return getStringBasedOnLocale('legend', 'alternateLong');
         }
-        
+
     }
 
     function getPrefixIcon(historyObject) {
@@ -597,7 +629,7 @@ function loadTable(payload, locale) {
         var tabName = getLocaleOrDefaultFromObject(tab.name);
 
         // Hacky vars
-        var tabIcon = (tab.name.en.toLowerCase().indexOf('desktop') != -1 ? 'desktop' : 'mobile');
+        var tabIcon = _hackEnvironmentIcon(tab);
 
         output += '<th colspan="' + tab.browsers.length +'" class="bc-medium-' + tabIcon + '">';
 
@@ -612,6 +644,19 @@ function loadTable(payload, locale) {
         return output;
     }
 
+    function _hackEnvironmentIcon(tab) {
+        var tabName = tab.name.en.toLowerCase();
+        var iconName = '';
+        if(tabName.indexOf('desktop') != -1){
+            iconName = 'desktop';
+        } else if(tabName.indexOf('mobile') != -1) {
+            iconName = 'mobile';
+        } else if(tabName.indexOf('non-browser') != -1){
+            iconName = 'non';
+        }
+        return iconName;
+    }
+
     function _hackBrowserIcons(browserId, extraClass) {
         var output = '';
         var matchedBrowserObj = findObjectByIdInArray(browserId, payload.linked.browsers);
@@ -624,20 +669,43 @@ function loadTable(payload, locale) {
             icon: icon
         };
 
-        if(icon == 'firefox_mobile') {
-            template = templates.mobile;
+        if(icon == 'chrome_desktop') {
+            substituteObject.icon = 'chrome';
+        }
+        else if(icon == 'chrome_for_android') {
+            template = templates.iconx2;
+            substituteObject.icon1 = 'chrome';
+            substituteObject.icon2 = 'android';
+        }
+        else if(icon == 'firefox_desktop') {
+            substituteObject.icon = 'firefox';
+        }
+        else if(icon == 'firefox_android') {
+            template = templates.iconx2;
             substituteObject.icon1 = 'firefox';
             substituteObject.icon2 = 'android';
         }
+        else if(icon == 'ie_desktop' || icon == 'ie_mobile') {
+            substituteObject.icon = 'ie';
+        }
+        else if(icon == 'opera_desktop') {
+            substituteObject.icon = 'opera';
+        }
         else if(icon == 'opera_mobile') {
-            template = templates.mobile;
+            template = templates.iconx2;
             substituteObject.icon1 = 'opera';
             substituteObject.icon2 = 'mobile';
         }
-        else if(icon == 'android') {
-            template = templates.mobile;
-            substituteObject.icon1 = 'chrome';
-            substituteObject.icon2 = 'mobile';
+        else if(icon == 'opera_mini') {
+            template = templates.iconx2;
+            substituteObject.icon1 = 'opera';
+            substituteObject.icon2 = 'mini';
+        }
+        else if(icon == 'safari_desktop' || icon == 'safari_ios') {
+            substituteObject.icon = 'safari';
+        }
+        else if (icon == 'android' || icon == 'android_webview') {
+            substituteObject.icon = 'android_browser';
         }
 
         output += '<th class="bc-browser-' + icon + ' ' + extraClass + '">';

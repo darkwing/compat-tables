@@ -21,7 +21,7 @@ abbr {
 .debug-detail-alt { background: lightblue; }
 .debug-detail-alt2 { background: lightpink; }
 
-/* used for debugging 
+/* used for debugging
 body .hidden {
 	display: block !important;
 }
@@ -41,17 +41,17 @@ body .bc-table .bc-history {
 </head>
 
 <body>
-	
+
 <!-- Stubbing in jQuery and Stephanie's work to ensure everything works as required -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js" ></script>
 <script src="jquery-actions.js" defer></script>
 
 <script type="text/javascript">
 [
-	//{ heading: 'Display', data: 'displayPayload', file: 'display' },
+	{ heading: 'Display', data: 'displayPayload', file: 'display' },
 	{ heading: 'transform-origin', data: 'transformOriginPayload', file: 'transform-origin' },
-	//{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' },
-	//{ heading: 'HTMLHtmlElement', data: 'HTMLHtmlElementPayload', file: 'HTMLHtmlElement' }
+	{ heading: 'Web API childNode', data: 'childNodePayload', file: 'childNode' },
+	{ heading: 'HTMLHtmlElement', data: 'HTMLHtmlElementPayload', file: 'HTMLHtmlElement' }
 ].forEach(function(item) {
 
 	var script = document.createElement('script');
@@ -70,7 +70,7 @@ body .bc-table .bc-history {
 
 			$(container.firstChild).mozCompatTable();
 		};
-		
+
 	})(item);
 
 	document.body.appendChild(script);
